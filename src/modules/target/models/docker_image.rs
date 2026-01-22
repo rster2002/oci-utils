@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -41,5 +42,11 @@ impl FromStr for DockerImage {
             repository: repository.to_string(),
             tag: tag.to_string(),
         })
+    }
+}
+
+impl Display for DockerImage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.repository, self.tag)
     }
 }

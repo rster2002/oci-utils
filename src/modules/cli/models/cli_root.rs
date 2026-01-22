@@ -3,6 +3,9 @@ use crate::modules::target::Target;
 
 #[derive(Debug, Parser)]
 pub struct CliRoot {
-    from: Target,
-    to: Target,
+    #[arg(value_parser = Target::parse_arg)]
+    pub from: Target,
+
+    #[arg(value_parser = Target::parse_arg)]
+    pub to: Target,
 }

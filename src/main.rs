@@ -4,7 +4,8 @@ use crate::modules::cli::CliRoot;
 mod modules;
 
 fn main() {
-    let i = CliRoot::parse();
+    let arguments = CliRoot::parse();
     
-    dbg!(&i);
+    let value = arguments.from.resolve();
+    dbg!(&value);
 }

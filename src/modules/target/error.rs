@@ -5,4 +5,5 @@ use crate::modules::target::models::docker_target::DockerTargetError;
 #[error(transparent)]
 pub enum TargetError {
     DockerTargetError(#[from] DockerTargetError),
+    IO(#[from] std::io::Error),
 }
