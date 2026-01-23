@@ -10,4 +10,8 @@ pub struct CliRoot {
 
     /// Where to place the extracted contents.
     pub to: PathBuf,
+
+    /// Whether to force the contents to be written to a directory.
+    #[arg(long)]
+    pub dir: bool,
 }

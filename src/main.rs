@@ -1,25 +1,30 @@
 use std::fs;
 use clap::Parser;
 use crate::modules::cli::CliRoot;
+use crate::modules::target::TargetResult;
 
 mod modules;
 
 fn main() {
     let arguments = CliRoot::parse();
 
-    let contents = match arguments.from.resolve() {
-        Ok(Some(contents)) => contents,
-        Ok(None) => {
+    let mut result = match arguments.from.resolve() {
+        Ok(TargetResult::None) => {
             println!("Could not find the requested file in the given target");
             return;
         },
+        Ok(result) => result,
         Err(error) => {
             eprintln!("Failed to get contents: {}", error);
             return;
         }
     };
 
-    match fs::write(&arguments.to, contents) {
+    if arguments.dir {
+        result.force_dir();
+    }
+
+    match result.write_to(&arguments.to) {
         Ok(_) => (),
         Err(error) => {
             eprintln!("Failed to write contents: {}", error);
@@ -27,5 +32,5 @@ fn main() {
         }
     }
 
-    println!("Successfully wrote contents to {}", arguments.to.display());
+    // println!("Successfully wrote contents to {}", arguments.to.display());
 }

@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use url::Url;
 use crate::modules::target::functions::resolve_url_target::resolve_url_target;
-use crate::modules::target::TargetError;
+use crate::modules::target::{TargetError, TargetResult};
 
 #[derive(Debug, Clone)]
 pub enum Target {
@@ -11,9 +11,9 @@ pub enum Target {
 }
 
 impl Target {
-    pub fn resolve(&self) -> Result<Option<Vec<u8>>, TargetError> {
+    pub fn resolve(&self) -> Result<TargetResult, TargetError> {
         Ok(match self {
-            Target::Path(path) => Some(fs::read(path)?),
+            Target::Path(path) => TargetResult::File(path.to_path_buf(), fs::read(path)?),
             Target::Url(url) => resolve_url_target(url)?,
         })
     }

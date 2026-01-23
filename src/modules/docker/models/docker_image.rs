@@ -22,7 +22,7 @@ impl FromStr for DockerImage {
             .next()
             .ok_or(DockerError::MissingTag)?;
 
-        if (iter.next().is_some()) {
+        if iter.next().is_some() {
             return Err(DockerError::TooManyDelimiters);
         }
 

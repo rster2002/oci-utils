@@ -3,19 +3,20 @@ use crate::modules::docker::DockerError;
 use oci_spec::image::{Digest, ImageIndex, ImageManifest, MediaType};
 use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
-use std::str::FromStr;
 use bytes::Bytes;
+use glob::Pattern;
 use tar::{Archive, Entry};
 use url::Url;
+use crate::modules::target::TargetResult;
 
 #[derive(Debug, Clone)]
 pub struct DockerTarget {
     image: DockerImage,
-    path: PathBuf,
+    pattern: Pattern,
 }
 
 impl DockerTarget {
-    pub fn resolve(&self) -> Result<Option<Vec<u8>>, DockerError> {
+    pub fn resolve(&self) -> Result<TargetResult, DockerError> {
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")
             .build()?;
@@ -70,24 +71,30 @@ impl DockerTarget {
             let buf_reader = BufReader::new(layer_entry);
             let mut archive = Archive::new(buf_reader);
 
+            let mut result = TargetResult::default();
+
             for entry in archive.entries()? {
                 let mut entry = entry?;
                 let header = entry.header();
                 let path = header.path()?;
 
-                if path != self.path {
+                if !self.pattern.matches_path(path.as_ref()) {
                     continue;
                 }
+
+                let path_buf = path.to_path_buf();
 
                 let size = header.size()?;
                 let mut contents = Vec::with_capacity(size as usize);
                 entry.read_to_end(&mut contents)?;
 
-                return Ok(Some(contents))
+                result.add(path_buf, contents);
             }
+
+            return Ok(result);
         }
 
-        Ok(None)
+        Ok(TargetResult::None)
     }
 
     fn create_tar_reader(bytes: &Bytes) -> Archive<BufReader<Cursor<&Bytes>>> {
@@ -145,11 +152,12 @@ impl TryFrom<&Url> for DockerTarget {
             .ok_or(DockerError::NoPathSegments)?
             .parse()?;
 
-        let path = PathBuf::from(path_segments.next().ok_or(DockerError::NoPathSegments)?);
+        let pattern = path_segments.next().ok_or(DockerError::NoPathSegments)?
+            .parse()?;
 
         Ok(DockerTarget {
             image,
-            path,
+            pattern,
         })
     }
 }

@@ -6,6 +6,7 @@ pub enum DockerError {
     ReqwestError(#[from] reqwest::Error),
     IOError(#[from] std::io::Error),
     SerdeJsonError(#[from] serde_json::error::Error),
+    PatternError(#[from] glob::PatternError),
 
     #[error("Missing repository")]
     MissingRepository,
