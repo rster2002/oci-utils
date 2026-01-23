@@ -14,4 +14,8 @@ pub struct CliRoot {
     /// Whether to force the contents to be written to a directory.
     #[arg(long)]
     pub dir: bool,
+
+    /// The number of layers to search.
+    #[arg(long = "limit", short = 'n')]
+    pub layer_limit: Option<usize>,
 }

@@ -1,4 +1,5 @@
 use thiserror::Error;
+use crate::modules::target::TargetError;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
@@ -6,13 +7,16 @@ pub enum DockerError {
     ReqwestError(#[from] reqwest::Error),
     IOError(#[from] std::io::Error),
     SerdeJsonError(#[from] serde_json::error::Error),
-    PatternError(#[from] glob::PatternError),
+    WaxError(#[from] wax::BuildError),
 
     #[error("Missing repository")]
     MissingRepository,
 
     #[error("Missing tag")]
     MissingTag,
+
+    #[error("Missing path")]
+    MissingPath,
 
     #[error("Too many delimiters")]
     TooManyDelimiters,
@@ -28,7 +32,7 @@ pub enum DockerError {
 
     #[error("No path in URL")]
     NoPathSegments,
-    
+
     #[error("Failed to resolve layer")]
     FailedToResolveLayer,
 }

@@ -8,29 +8,21 @@ mod modules;
 fn main() {
     let arguments = CliRoot::parse();
 
-    let mut result = match arguments.from.resolve() {
-        Ok(TargetResult::None) => {
-            println!("Could not find the requested file in the given target");
-            return;
-        },
-        Ok(result) => result,
-        Err(error) => {
-            eprintln!("Failed to get contents: {}", error);
-            return;
-        }
+    let mut result = if arguments.dir {
+        TargetResult::dir(&arguments.to)
+    } else {
+        TargetResult::new(&arguments.to)
     };
 
-    if arguments.dir {
-        result.force_dir();
+    if let Err(error) = arguments.from.resolve(&mut result, &arguments) {
+        eprintln!("Failed to get contents: {}", error);
+        return;
     }
 
-    match result.write_to(&arguments.to) {
-        Ok(_) => (),
-        Err(error) => {
-            eprintln!("Failed to write contents: {}", error);
-            return;
-        }
+    if let Err(error) = result.finalize() {
+        eprintln!("Failed to finalize contents: {}", error);
+        return;
     }
 
-    // println!("Successfully wrote contents to {}", arguments.to.display());
+    println!("Successfully wrote contents to {}", arguments.to.display());
 }

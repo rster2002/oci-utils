@@ -4,19 +4,22 @@ use oci_spec::image::{Digest, ImageIndex, ImageManifest, MediaType};
 use std::io::{BufReader, Cursor, Read};
 use std::path::PathBuf;
 use bytes::Bytes;
-use glob::Pattern;
 use tar::{Archive, Entry};
 use url::Url;
+use wax::{Glob, Pattern};
+use crate::modules::cli::CliRoot;
 use crate::modules::target::TargetResult;
 
 #[derive(Debug, Clone)]
 pub struct DockerTarget {
     image: DockerImage,
-    pattern: Pattern,
+    pattern: Glob<'static>,
 }
 
 impl DockerTarget {
-    pub fn resolve(&self) -> Result<TargetResult, DockerError> {
+    pub fn resolve(&self, result: &mut TargetResult, options: &CliRoot) -> Result<(), DockerError> {
+        println!("Resolving docker target");
+
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")
             .build()?;
@@ -24,6 +27,8 @@ impl DockerTarget {
         let bytes = client.get(format!("http://docker.local/images/{}/get", self.image.to_string()))
             .send()?
             .bytes()?;
+
+        println!("Finished fetching image from docker context");
 
         let mut index_contents = None;
 
@@ -59,10 +64,19 @@ impl DockerTarget {
 
         let manifest = serde_json::from_slice::<ImageManifest>(&manifest_bytes)?;
 
+        // if multiple {
+        //     println!("Pattern can match multiple files, all layers will be searched");
+        // } else {
+        //     println!("Pattern can only match a single file, the first match will be returned");
+        // }
+
+        let mut layer_nr = 1;
         for layer in manifest.layers().iter().rev() {
             if !matches!(layer.media_type(), MediaType::ImageLayer) {
                 continue;
             }
+
+            println!("Searching layer '{}'", layer.digest());
 
             let mut archive = Self::create_tar_reader(&bytes);
             let layer_entry = Self::resolve_digest_entry(&mut archive, layer.digest())?
@@ -71,30 +85,46 @@ impl DockerTarget {
             let buf_reader = BufReader::new(layer_entry);
             let mut archive = Archive::new(buf_reader);
 
-            let mut result = TargetResult::default();
-
             for entry in archive.entries()? {
                 let mut entry = entry?;
                 let header = entry.header();
                 let path = header.path()?;
+                let size = header.size()?;
 
-                if !self.pattern.matches_path(path.as_ref()) {
+                if size == 0 {
+                    continue;
+                }
+
+                if !self.pattern.is_match(path.as_ref()) {
                     continue;
                 }
 
                 let path_buf = path.to_path_buf();
 
-                let size = header.size()?;
                 let mut contents = Vec::with_capacity(size as usize);
                 entry.read_to_end(&mut contents)?;
 
-                result.add(path_buf, contents);
+                if result.add(&path_buf, contents)? {
+                    println!("- found '{}' in layer '{}'", path_buf.display(), layer.digest());
+                }
+
+                // // If the pattern cannot match multiple files, then imminently return the found
+                // // contents and don't bother searching the other layers.
+                // if !multiple {
+                //     println!("Final match found");
+                //     return Ok(result);
+                // }
             }
 
-            return Ok(result);
+            if options.layer_limit.is_some_and(|limit| layer_nr == limit) {
+                println!("Finished searching after {} layer(s) because of set limit", layer_nr);
+                return Ok(());
+            }
+
+            layer_nr += 1;
         }
 
-        Ok(TargetResult::None)
+        Ok(())
     }
 
     fn create_tar_reader(bytes: &Bytes) -> Archive<BufReader<Cursor<&Bytes>>> {
@@ -145,19 +175,24 @@ impl TryFrom<&Url> for DockerTarget {
             return Err(DockerError::NoDockerScheme);
         }
 
-        let mut path_segments = url.path()
-            .splitn(2, '/');
+        let mut segments = url.path().split(':');
+        let repository = segments.next()
+            .ok_or(DockerError::MissingRepository)?;
 
-        let image = path_segments.next()
-            .ok_or(DockerError::NoPathSegments)?
-            .parse()?;
-
-        let pattern = path_segments.next().ok_or(DockerError::NoPathSegments)?
-            .parse()?;
+        let (pattern, tag) = match (segments.next(), segments.next()) {
+            (Some(tag), Some(path)) => (path, tag),
+            (Some(path), None) => (path, "latest"),
+            (_, _) => return Err(DockerError::MissingPath),
+        };
 
         Ok(DockerTarget {
-            image,
-            pattern,
+            image: DockerImage {
+                repository: repository.to_string(),
+                tag: tag.to_string(),
+            },
+            pattern: pattern
+                .trim_start_matches('/')
+                .parse()?,
         })
     }
 }

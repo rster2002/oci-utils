@@ -10,7 +10,6 @@ path = "./src/main.rs"
 [dependencies]
 bytes = "1.11.0"
 clap = { version = "4.5.54", features = ["derive"] }
-glob = "0.3.3"
 oci-spec = "0.8.4"
 reqwest = { version = "0.13.1", features = ["blocking", "json"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -18,3 +17,4 @@ serde_json = "1.0.149"
 tar = "0.4.44"
 thiserror = "2.0.18"
 url = "2.5.8"
+wax = { version = "0.6.0", default-features = false }
