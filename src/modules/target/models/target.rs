@@ -1,26 +1,26 @@
 use std::fs;
 use std::path::PathBuf;
-use std::str::FromStr;
-use crate::modules::target::{DockerTarget, TargetError};
-use crate::modules::target::models::docker_target::DockerTargetError;
+use url::Url;
+use crate::modules::target::functions::resolve_url_target::resolve_url_target;
+use crate::modules::target::TargetError;
 
 #[derive(Debug, Clone)]
 pub enum Target {
+    Url(Url),
     Path(PathBuf),
-    Docker(DockerTarget),
 }
 
 impl Target {
-    pub fn resolve(&self) -> Result<Vec<u8>, TargetError> {
+    pub fn resolve(&self) -> Result<Option<Vec<u8>>, TargetError> {
         Ok(match self {
-            Target::Path(path) => fs::read(path)?,
-            Target::Docker(docker_target) => docker_target.resolve()?,
+            Target::Path(path) => Some(fs::read(path)?),
+            Target::Url(url) => resolve_url_target(url)?,
         })
     }
 
     pub fn parse_arg(value: &str) -> Result<Self, TargetError> {
-        if value.starts_with("docker:") {
-            return Ok(Target::Docker(DockerTarget::from_str(value)?));
+        if let Ok(url) = Url::parse(value) {
+            return Ok(Target::Url(url));
         }
 
         Ok(Target::Path(PathBuf::from(value)))

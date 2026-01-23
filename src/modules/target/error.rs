@@ -1,9 +1,12 @@
 use thiserror::Error;
-use crate::modules::target::models::docker_target::DockerTargetError;
+use crate::modules::docker::DockerError;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum TargetError {
-    DockerTargetError(#[from] DockerTargetError),
     IO(#[from] std::io::Error),
+    DockerError(#[from] DockerError),
+
+    #[error("Used an unsupported target scheme: '{0}'")]
+    UnsupportedTargetScheme(String),
 }

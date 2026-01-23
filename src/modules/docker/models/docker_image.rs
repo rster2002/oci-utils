@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::str::FromStr;
-use thiserror::Error;
+use crate::modules::docker::DockerError;
 
 #[derive(Debug, Clone)]
 pub struct DockerImage {
@@ -8,34 +8,22 @@ pub struct DockerImage {
     pub tag: String,
 }
 
-#[derive(Debug, Error)]
-pub enum DockerImageError {
-    #[error("Missing repository")]
-    MissingRepository,
-
-    #[error("Missing tag")]
-    MissingTag,
-
-    #[error("Too many delimiters")]
-    TooManyDelimiters,
-}
-
 impl FromStr for DockerImage {
-    type Err = DockerImageError;
+    type Err = DockerError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut iter = s.split(':');
 
         let repository = iter
             .next()
-            .ok_or(DockerImageError::MissingRepository)?;
+            .ok_or(DockerError::MissingRepository)?;
 
         let tag = iter
             .next()
-            .ok_or(DockerImageError::MissingTag)?;
+            .ok_or(DockerError::MissingTag)?;
 
         if (iter.next().is_some()) {
-            return Err(DockerImageError::TooManyDelimiters);
+            return Err(DockerError::TooManyDelimiters);
         }
 
         Ok(DockerImage {

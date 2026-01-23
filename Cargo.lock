@@ -901,8 +901,10 @@ dependencies = [
  "oci-spec",
  "reqwest",
  "serde",
+ "serde_json",
  "tar",
  "thiserror 2.0.18",
+ "url",
 ]
 
 [[package]]
