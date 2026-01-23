@@ -64,8 +64,8 @@ impl TargetResult {
     }
 
     pub fn finalize(self) -> Result<(), std::io::Error> {
-        if let TargetResultMode::File(path, contents) = &self.mode {
-            fs::write(path, contents)?;
+        if let TargetResultMode::File(_, contents) = &self.mode {
+            fs::write(self.path, contents)?;
         }
 
         Ok(())
