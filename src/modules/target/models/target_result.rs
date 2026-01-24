@@ -63,12 +63,15 @@ impl TargetResult {
         Ok(true)
     }
 
-    pub fn finalize(self) -> Result<(), std::io::Error> {
-        if let TargetResultMode::File(_, contents) = &self.mode {
-            fs::write(self.path, contents)?;
-        }
-
-        Ok(())
+    pub fn finalize(self) -> Result<bool, std::io::Error> {
+        Ok(match self.mode {
+            TargetResultMode::None => false,
+            TargetResultMode::File(_, contents) => {
+                fs::write(self.path, contents)?;
+                true
+            },
+            TargetResultMode::Dir => true,
+        })
     }
 
     fn write_as_dir<P: AsRef<Path>>(

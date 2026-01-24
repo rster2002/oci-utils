@@ -28,7 +28,7 @@ pub struct RegistryTarget {
 
 impl RegistryTarget {
     pub fn resolve(&self, result: &mut TargetResult, options: &CliRoot) -> Result<(), RegistryError> {
-        println!("Resolving registry target");
+        println!("Resolving registry target '{}'", self.image);
         let client = self.create_client()?;
 
         let mut manifest_url = self.create_base_url()?;

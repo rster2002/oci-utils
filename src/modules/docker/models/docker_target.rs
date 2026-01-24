@@ -2,7 +2,6 @@ use crate::modules::docker::models::docker_image::DockerImage;
 use crate::modules::docker::DockerError;
 use oci_spec::image::{Digest, ImageIndex, ImageManifest, MediaType};
 use std::io::{BufReader, Cursor, Read};
-use std::path::PathBuf;
 use bytes::Bytes;
 use tar::{Archive, Entry};
 use url::Url;
@@ -18,7 +17,7 @@ pub struct DockerTarget {
 
 impl DockerTarget {
     pub fn resolve(&self, result: &mut TargetResult, options: &CliRoot) -> Result<(), DockerError> {
-        println!("Resolving docker target");
+        println!("Resolving docker target '{}'", self.image);
 
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")

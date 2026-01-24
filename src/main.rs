@@ -19,10 +19,9 @@ fn main() {
         return;
     }
 
-    if let Err(error) = result.finalize() {
-        eprintln!("Failed to finalize contents: {}", error);
-        return;
+    match result.finalize() {
+        Ok(true) => println!("Successfully wrote contents to {}", arguments.to.display()),
+        Ok(false) => eprintln!("Nothing to write to {}", arguments.to.display()),
+        Err(error) => eprintln!("Failed to finalize contents: {}", error),
     }
-
-    println!("Successfully wrote contents to {}", arguments.to.display());
 }
