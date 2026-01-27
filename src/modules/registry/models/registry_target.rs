@@ -65,6 +65,11 @@ impl RegistryTarget {
                     println!("-- Found '{}' in layer '{}'", path.display(), layer.digest());
                 }
 
+                if result.is_file() && options.file {
+                    println!("Finished searching after finding first file");
+                    return Ok(())
+                }
+
                 if options.layer_limit.is_some_and(|limit| layer_nr == limit) {
                     println!("Finished searching after {} layer(s) because of set limit", layer_nr);
                     return Ok(());

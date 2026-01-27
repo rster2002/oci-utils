@@ -107,6 +107,11 @@ impl DockerTarget {
                     println!("- found '{}' in layer '{}'", path_buf.display(), layer.digest());
                 }
 
+                if result.is_file() && options.file {
+                    println!("Finished searching after finding first file");
+                    return Ok(())
+                }
+
                 // // If the pattern cannot match multiple files, then imminently return the found
                 // // contents and don't bother searching the other layers.
                 // if !multiple {

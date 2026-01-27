@@ -36,6 +36,14 @@ impl TargetResult {
             mode: TargetResultMode::Dir,
         }
     }
+    
+    pub fn is_file(&self) -> bool {
+        matches!(self.mode, TargetResultMode::File(_, _))
+    }
+
+    pub fn is_dir(&self) -> bool {
+        matches!(self.mode, TargetResultMode::Dir)
+    }
 
     pub fn add<P: AsRef<Path>>(
         &mut self,
