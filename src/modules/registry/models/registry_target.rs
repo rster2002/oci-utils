@@ -21,6 +21,7 @@ pub struct RegistryTarget {
     image: DockerImage,
     https: bool,
     host: Host,
+    port: Option<u16>,
     credentials: RegistryCredentials,
     pattern: Glob<'static>,
     platform: PlatformSelector,
@@ -97,7 +98,11 @@ impl RegistryTarget {
 
     fn create_base_url(&self) -> Result<Url, RegistryError> {
         let scheme = if self.https { "https" } else { "http" };
-        Ok(Url::parse(&format!("{}://{}", scheme, self.host))?)
+
+        Ok(Url::parse(&match self.port {
+            None => format!("{}://{}", scheme, self.host),
+            Some(port) => format!("{}://{}:{}", scheme, self.host, port),
+        })?)
     }
 
     fn should_handle_manifest(&self, manifest: &Descriptor) -> bool {
@@ -138,8 +143,8 @@ impl TryFrom<&Url> for RegistryTarget {
             return Err(RegistryError::InvalidScheme);
         }
 
-        let https = value.scheme() != "https+docker"
-            || value.scheme() != "docker+https";
+        let https = value.scheme() == "https+docker"
+            || value.scheme() == "docker+https";
 
         let host = value.host()
             .ok_or(RegistryError::MissingHost)?
@@ -175,6 +180,7 @@ impl TryFrom<&Url> for RegistryTarget {
             },
             https,
             host,
+            port: value.port(),
             credentials,
             platform,
             pattern: pattern
