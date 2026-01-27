@@ -14,6 +14,7 @@ use crate::modules::layer::Layer;
 use crate::modules::registry::error::RegistryError;
 use crate::modules::registry::models::platform_selector::PlatformSelector;
 use crate::modules::registry::models::registry_credentials::RegistryCredentials;
+use crate::modules::tar::TarDriver;
 use crate::modules::target::TargetResult;
 
 #[derive(Debug)]

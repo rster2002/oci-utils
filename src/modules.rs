@@ -1,7 +1,8 @@
 pub mod cli;
 pub mod target;
-pub mod oci;
+pub mod extractor;
 pub mod docker;
 pub mod shared;
-mod registry;
-mod layer;
+pub mod registry;
+pub mod layer;
+pub mod tar;
