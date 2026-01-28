@@ -12,22 +12,22 @@ use crate::modules::target::TargetResult;
 
 #[derive(Debug, Clone)]
 pub struct DockerTarget {
-    image: DockerImage,
-    pattern: Glob<'static>,
+    pub image: DockerImage,
+    pub pattern: Glob<'static>,
 }
 
 impl DockerTarget {
-    // pub fn create_driver<'a>(&self) -> Result<BytesTarDriver, DockerError> {
-    //     let client = reqwest::blocking::Client::builder()
-    //         .unix_socket("/var/run/docker.sock")
-    //         .build()?;
-    //
-    //     let bytes = client.get(format!("http://docker.local/images/{}/get", self.image.to_string()))
-    //         .send()?
-    //         .bytes()?;
-    //
-    //     Ok(BytesTarDriver::new(bytes))
-    // }
+    pub fn create_driver<'a>(&self) -> Result<BytesTarDriver, DockerError> {
+        let client = reqwest::blocking::Client::builder()
+            .unix_socket("/var/run/docker.sock")
+            .build()?;
+
+        let bytes = client.get(format!("http://docker.local/images/{}/get", self.image.to_string()))
+            .send()?
+            .bytes()?;
+
+        Ok(BytesTarDriver::new(bytes))
+    }
 
     pub fn resolve(&self, result: &mut TargetResult, options: &CliRoot) -> Result<(), DockerError> {
         println!("Resolving docker target '{}'", self.image);
