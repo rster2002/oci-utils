@@ -22,7 +22,7 @@ impl ExtractorDriver for BytesTarDriver {
         TarDriver::new(&self.bytes).index()
     }
 
-    fn blob(&self, digest: &Digest) -> Result<Vec<u8>, Self::Error> {
+    fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
         TarDriver::new(&self.bytes).blob(digest)
     }
 }

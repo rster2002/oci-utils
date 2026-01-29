@@ -7,7 +7,7 @@ pub trait ExtractorDriver {
     type Error;
 
     fn index(&self) -> Result<Option<Vec<u8>>, Self::Error>;
-    fn blob(&self, digest: &Digest) -> Result<Vec<u8>, Self::Error>;
+    fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error>;
 
     // fn manifests(&self) -> Result<Vec<Digest>, OciDriverError<Self::Error>> {
     //     self.manifests_for_index(&self.index()?)

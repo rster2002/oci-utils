@@ -46,7 +46,27 @@ impl<'a> ExtractorDriver for TarDriver<'a> {
         Ok(None)
     }
 
-    fn blob(&self, digest: &Digest) -> Result<Vec<u8>, Self::Error> {
-        todo!()
+    fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
+        let search = format!("{}/{}", digest.algorithm(), digest.digest());
+        let mut archive = self.create_archive();
+
+        for entry in archive.entries()? {
+            let mut entry = entry?;
+            let header = entry.header();
+            let path = header.path()?;
+
+            if !path.starts_with("blobs") {
+                continue;
+            }
+
+            if path.ends_with(&search) {
+                let mut contents = Vec::with_capacity(header.size()? as usize);
+                entry.read_to_end(&mut contents)?;
+
+                return Ok(Some(contents));
+            }
+        }
+
+        Ok(None)
     }
 }

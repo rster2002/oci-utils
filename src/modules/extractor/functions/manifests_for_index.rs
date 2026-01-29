@@ -10,14 +10,20 @@ where T : ExtractorDriver,
     for descriptor in index.manifests() {
         match descriptor.media_type() {
             MediaType::ImageManifest => {
-                let blob = driver.blob(&descriptor.digest())?;
+                let Some(blob) = driver.blob(&descriptor.digest())? else {
+                    continue;
+                };
+
                 let manifest = serde_json::from_slice::<ImageManifest>(&blob)
                     .map_err(|e| ExtractorError::FailedToParseImageIndex(e))?;
                 
                 results.push(manifest);
             },
             MediaType::ImageIndex => {
-                let blob = driver.blob(&descriptor.digest())?;
+                let Some(blob) = driver.blob(&descriptor.digest())? else {
+                    continue;
+                };
+
                 let index = serde_json::from_slice::<ImageIndex>(&blob)
                     .map_err(|e| ExtractorError::FailedToParseImageIndex(e))?;
 
