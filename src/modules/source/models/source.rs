@@ -3,19 +3,21 @@ use oci_spec::image::Digest;
 use url::Url;
 use crate::modules::docker::DockerSource;
 use crate::modules::oci::BlobResolver;
+use crate::modules::registry::RegistrySource;
 use crate::modules::source::error::SourceError;
 use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
 pub enum Source {
     Docker(DockerSource),
-    // Registry(),
+    Registry(RegistrySource),
 }
 
 impl Source {
     pub fn target(&self) -> &Target {
         match self {
-            Source::Docker(source) => source.target(),
+            Source::Docker(docker_source) => docker_source.target(),
+            Source::Registry(registry_source) => registry_source.target(),
         }
     }
 
@@ -40,6 +42,10 @@ impl TryFrom<&Url> for Source {
             return Ok(Source::Docker(source));
         }
 
+        if let Ok(source) = RegistrySource::try_from(value) {
+            return Ok(Source::Registry(source));
+        }
+
         Err(SourceError::UnknownSource)
     }
 }
@@ -49,13 +55,15 @@ impl BlobResolver for Source {
 
     fn index(&self) -> Result<Option<Vec<u8>>, Self::Error> {
         Ok(match self {
-            Source::Docker(docker) => docker.index()?
+            Source::Docker(docker) => docker.index()?,
+            Source::Registry(registry) => registry.index()?,
         })
     }
 
     fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
         Ok(match self {
-            Source::Docker(docker) => docker.blob(digest)?
+            Source::Docker(docker) => docker.blob(digest)?,
+            Source::Registry(registry) => registry.blob(digest)?,
         })
     }
 }

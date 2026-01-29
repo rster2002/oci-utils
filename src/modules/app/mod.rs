@@ -2,6 +2,7 @@ use std::io::{BufReader, Read};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::MediaType;
+use owo_colors::OwoColorize;
 use tar::Archive;
 use wax::Pattern;
 use crate::modules::app::error::AppError;
@@ -16,9 +17,18 @@ pub fn run() -> Result<(), AppError> {
 
     let mut output = Output::new(&arguments.to);
 
-    for manifest in find_manifests(&arguments.from)? {
+    for manifest in dbg!(find_manifests(&arguments.from)?) {
+        println!("{}", manifest);
+
+        if let Some(annotations) = manifest.annotations()
+            && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
+            && reference_type == "attestation-manifest"
+        {
+            continue;
+        }
+
         for layer in manifest.layers() {
-            println!("{}", layer.digest());
+            println!("Searching layer... {}", layer.digest().bright_black());
 
             let Some(bytes) = arguments.from.blob(&layer.digest())? else {
                 eprintln!("Blob for {} not found", layer.digest());
@@ -50,15 +60,11 @@ pub fn run() -> Result<(), AppError> {
                     continue;
                 }
 
-                dbg!(&path);
-
-                dbg!(&arguments.from);
-
                 if !arguments.from.target().glob.is_match(path.as_ref()) {
-                    dbg!("Here?");
                     continue;
                 }
 
+                println!("=> Found {}", path.display().green());
                 let path_buf = path.to_path_buf();
 
                 let mut contents = Vec::with_capacity(size as usize);
@@ -72,9 +78,9 @@ pub fn run() -> Result<(), AppError> {
     }
 
     if output.flush()? {
-        println!("All done");
+        println!("Finished exporting contents to {}", arguments.to.display().green());
     } else {
-        println!("Nothing to write");
+        println!("{}", "Nothing to write".yellow());
     }
 
     Ok(())

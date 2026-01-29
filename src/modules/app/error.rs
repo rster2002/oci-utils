@@ -11,6 +11,6 @@ pub enum AppError {
     OciError(#[from] OciError<SourceError>),
     IOError(#[from] std::io::Error),
 
-    #[error("Could not open layer '{1}' due to unknown media type '{0}'")]
+    #[error("Could not open layer '{1}' because it has an unknown media type '{0}'")]
     UnknownMediaTypeAsLayer(MediaType, Digest),
 }
