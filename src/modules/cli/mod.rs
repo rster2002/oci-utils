@@ -1,3 +1,3 @@
 mod models;
 
-pub use models::cli_root::CliRoot;
+pub use models::root_arguments::RootArguments;

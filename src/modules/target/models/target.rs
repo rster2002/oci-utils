@@ -1,43 +1,36 @@
-use std::fs;
-use std::path::PathBuf;
-use url::Url;
-use crate::modules::cli::CliRoot;
-use crate::modules::target::functions::resolve_url_target::resolve_url_target;
-use crate::modules::target::{TargetError, TargetResult};
+use wax::Glob;
+use crate::modules::target::error::TargetError;
 
 #[derive(Debug, Clone)]
-pub enum Target {
-    Url(Url),
-    Path(PathBuf),
+pub struct Target {
+    pub repository: String,
+    pub tag: String,
+    pub glob: Glob<'static>,
 }
 
 impl Target {
-    pub fn resolve(&self, result: &mut TargetResult, options: &CliRoot) -> Result<(), TargetError> {
-        match self {
-            Target::Path(path) => {
-                result.add(path, fs::read(path)?)?;
-            },
-            Target::Url(url) => {
-                resolve_url_target(url, result, options)?;
-            },
-        }
-
-        Ok(())
+    pub fn reference(&self) -> String {
+        format!("{}:{}", self.repository, self.tag)
     }
 
-    pub fn parse_arg(value: &str) -> Result<Self, TargetError> {
-        if let Ok(url) = Url::parse(value) {
-            return Ok(Target::Url(url));
-        }
+    pub fn try_from<'a, T>(mut iterator: T) -> Result<Target, TargetError>
+    where T : Iterator<Item = &'a str>
+    {
+        let repository = iterator.next()
+            .ok_or(TargetError::MissingRepository)?;
 
-        Ok(Target::Path(PathBuf::from(value)))
-    }
-}
+        let (pattern, tag) = match (iterator.next(), iterator.next()) {
+            (Some(tag), Some(path)) => (path, tag),
+            (Some(path), None) => (path, "latest"),
+            (_, _) => return Err(TargetError::MissingPath),
+        };
 
-impl TryFrom<&str> for Target {
-    type Error = TargetError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::parse_arg(value)
+        Ok(Target {
+            repository: repository.to_string(),
+            tag: tag.to_string(),
+            glob: pattern
+                .trim_start_matches('/')
+                .parse()?,
+        })
     }
 }

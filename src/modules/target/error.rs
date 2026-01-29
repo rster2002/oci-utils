@@ -1,14 +1,13 @@
 use thiserror::Error;
-use crate::modules::docker::DockerError;
-use crate::modules::registry::RegistryError;
 
 #[derive(Debug, Error)]
-#[error(transparent)]
 pub enum TargetError {
-    IO(#[from] std::io::Error),
-    DockerError(#[from] DockerError),
-    RegistryError(#[from] RegistryError),
+    #[error("Missing repository in url")]
+    MissingRepository,
 
-    #[error("Used an unsupported target scheme: '{0}'")]
-    UnsupportedTargetScheme(String),
+    #[error("Missing path in url")]
+    MissingPath,
+
+    #[error("Invalid pattern: {0}")]
+    FailedToParsePattern(#[from] wax::BuildError),
 }
