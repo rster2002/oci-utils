@@ -49,21 +49,3 @@ impl TryFrom<&Url> for Source {
         Err(SourceError::UnknownSource)
     }
 }
-
-impl BlobResolver for Source {
-    type Error = SourceError;
-
-    fn index(&self) -> Result<Option<Vec<u8>>, Self::Error> {
-        Ok(match self {
-            Source::Docker(docker) => docker.index()?,
-            Source::Registry(registry) => registry.index()?,
-        })
-    }
-
-    fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
-        Ok(match self {
-            Source::Docker(docker) => docker.blob(digest)?,
-            Source::Registry(registry) => registry.blob(digest)?,
-        })
-    }
-}

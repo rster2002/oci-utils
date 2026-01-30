@@ -1,9 +1,9 @@
-use crate::modules::app::run;
+use crate::modules::app;
 
 mod modules;
 
 fn main() {
-    match run() {
+    match app::run() {
         Ok(_) => (),
         Err(err) => eprintln!("Error: {}", err),
     }
