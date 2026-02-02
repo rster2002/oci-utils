@@ -19,6 +19,10 @@ pub struct RootArguments {
     #[arg(long)]
     pub dir: bool,
 
+    /// Return the first file that matches and imminently finish searching.
+    #[arg(long)]
+    pub file: bool,
+
     /// The number of layers to search.
     #[arg(long = "limit", short = 'n')]
     pub layer_limit: Option<usize>,
