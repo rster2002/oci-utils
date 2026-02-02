@@ -1,6 +1,6 @@
-use oci_spec::image::Descriptor;
 use crate::modules::cli::RootArguments;
 use crate::modules::output::Output;
+use oci_spec::image::Descriptor;
 
 pub fn output_for_args(arguments: &RootArguments, descriptor: &Descriptor) -> Output {
     if arguments.multi_manifest {
@@ -10,7 +10,8 @@ pub fn output_for_args(arguments: &RootArguments, descriptor: &Descriptor) -> Ou
     if let Some(platform) = descriptor.platform()
         && !arguments.platform.is_empty()
     {
-        let path = arguments.to
+        let path = arguments
+            .to
             .join(platform.os().to_string())
             .join(platform.architecture().to_string());
 

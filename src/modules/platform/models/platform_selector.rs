@@ -1,6 +1,6 @@
-use std::str::FromStr;
-use oci_spec::image::{Arch, Os, Platform};
 use crate::modules::platform::error::PlatformError;
+use oci_spec::image::{Arch, Os, Platform};
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub enum PlatformSelector {
@@ -39,11 +39,9 @@ impl FromStr for PlatformSelector {
         if s.contains(':') {
             let mut segments = s.split(':');
 
-            let selector = segments.next()
-                .ok_or(PlatformError::MissingSelector)?;
+            let selector = segments.next().ok_or(PlatformError::MissingSelector)?;
 
-            let value = segments.next()
-                .ok_or(PlatformError::MissingSelectorValue)?;
+            let value = segments.next().ok_or(PlatformError::MissingSelectorValue)?;
 
             return Ok(match (selector, value) {
                 ("host", "os") => PlatformSelector::Os(Os::default()),
@@ -58,15 +56,13 @@ impl FromStr for PlatformSelector {
 
         let mut segments = s.split('/');
 
-        let first_segment = segments.next()
-            .ok_or(PlatformError::MissingSegment)?;
+        let first_segment = segments.next().ok_or(PlatformError::MissingSegment)?;
 
-        let second_segment = segments.next()
-            .ok_or(PlatformError::MissingSegment)?;
+        let second_segment = segments.next().ok_or(PlatformError::MissingSegment)?;
 
         Ok(PlatformSelector::Platform(
             Os::from(first_segment),
-            Arch::from(second_segment)
+            Arch::from(second_segment),
         ))
     }
 }
@@ -77,7 +73,9 @@ impl PartialEq<Platform> for PlatformSelector {
             PlatformSelector::Any => true,
             PlatformSelector::Os(os) => os == other.os(),
             PlatformSelector::Arch(arch) => arch == other.architecture(),
-            PlatformSelector::Platform(os, arch) => os == other.os() && arch == other.architecture(),
+            PlatformSelector::Platform(os, arch) => {
+                os == other.os() && arch == other.architecture()
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use crate::modules::app::error::AppError;
+use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
 use crate::modules::docker::DockerError;
 use crate::modules::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
@@ -12,7 +13,6 @@ use std::io::{BufReader, Read};
 use std::marker::PhantomData;
 use tar::Archive;
 use wax::Pattern;
-use crate::modules::app::functions::output_for_args::output_for_args;
 
 mod error;
 mod functions;
@@ -41,8 +41,7 @@ pub fn run() -> Result<(), AppError> {
     };
 
     let mut manifest_index = 0;
-    let do_multi_manifest = arguments.multi_manifest
-        || !arguments.platform.is_empty();
+    let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
     for descriptor in find_manifest_descriptors(&resolver)? {
         if let Some(annotations) = descriptor.annotations()
@@ -53,12 +52,16 @@ pub fn run() -> Result<(), AppError> {
         }
 
         if !arguments.platform.is_empty() {
-            let matches = arguments.platform
+            let matches = arguments
+                .platform
                 .iter()
                 .any(|selector| selector == descriptor.platform());
 
             if !matches {
-                println!("{} did not any match platform selector", descriptor.digest().blue());
+                println!(
+                    "{} did not any match platform selector",
+                    descriptor.digest().blue()
+                );
                 continue;
             }
         }
