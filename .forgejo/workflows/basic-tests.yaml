@@ -7,5 +7,22 @@ jobs:
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
       - uses: https://github.com/dtolnay/rust-toolchain@stable
-      - uses: https://github.com/Swatinem/rust-cache@v2
       - run: cargo build --release
+
+  clippy:
+    runs-on: docker
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-features
+
+  fmt:
+    runs-on: docker
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: https://github.com/actions-rust-lang/rustfmt
