@@ -1,11 +1,11 @@
 use crate::modules::source::Source;
 use clap::Parser;
 use std::path::PathBuf;
+use crate::modules::platform::PlatformSelector;
 
 #[derive(Debug, Parser)]
 pub struct RootArguments {
     /// The target to pull the contents from.
-    #[arg(value_parser = Source::parse_arg)]
     pub from: Source,
 
     /// Where to place the extracted contents.
@@ -26,4 +26,7 @@ pub struct RootArguments {
     /// Whether to export all matching manifest, or to only export the first.
     #[arg(long, short)]
     pub multi_manifest: bool,
+
+    #[arg(long)]
+    pub platform: Vec<PlatformSelector>,
 }
