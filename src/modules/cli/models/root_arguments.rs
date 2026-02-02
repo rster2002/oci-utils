@@ -11,6 +11,10 @@ pub struct RootArguments {
     /// Where to place the extracted contents.
     pub to: PathBuf,
 
+    /// Whether to only match a single file per manifest.
+    #[arg(long)]
+    pub file: bool,
+
     /// Whether to force the contents to be written to a directory.
     #[arg(long)]
     pub dir: bool,
@@ -18,4 +22,8 @@ pub struct RootArguments {
     /// The number of layers to search.
     #[arg(long = "limit", short = 'n')]
     pub layer_limit: Option<usize>,
+
+    /// Whether to export all matching manifest, or to only export the first.
+    #[arg(long, short)]
+    pub multi_manifest: bool,
 }

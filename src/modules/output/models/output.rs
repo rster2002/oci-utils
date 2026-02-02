@@ -59,6 +59,10 @@ impl Output {
         Ok(match self.mode {
             OutputMode::None => false,
             OutputMode::File(_, contents) => {
+                if let Some(parent) = self.path.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+
                 fs::write(self.path, contents)?;
                 true
             },

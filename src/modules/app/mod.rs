@@ -2,14 +2,14 @@ use std::io::{BufReader, Read};
 use std::marker::PhantomData;
 use clap::Parser;
 use flate2::bufread::GzDecoder;
-use oci_spec::image::{Digest, MediaType};
+use oci_spec::image::{Digest, ImageManifest, MediaType};
 use owo_colors::OwoColorize;
 use tar::Archive;
 use wax::Pattern;
 use crate::modules::app::error::AppError;
 use crate::modules::cli::RootArguments;
 use crate::modules::docker::DockerError;
-use crate::modules::oci::{find_manifests, AnyResolver, BlobResolver};
+use crate::modules::oci::{find_manifest_descriptors, AnyResolver, BlobResolver};
 use crate::modules::output::Output;
 use crate::modules::source::{Source, SourceError};
 
@@ -18,9 +18,10 @@ mod error;
 pub fn run() -> Result<(), AppError> {
     let arguments = RootArguments::parse();
 
-    let reference = arguments.from.target().reference();
+    let target = arguments.from.target().clone();
+    let reference = target.reference();
 
-    let resolver: Box<dyn BlobResolver<Error = SourceError>> = match arguments.from {
+    let resolver: AnyResolver = match arguments.from {
         Source::Docker(docker) => {
             println!("Searching for local image '{}'", reference.green());
             println!("Fetching image...");
@@ -29,85 +30,113 @@ pub fn run() -> Result<(), AppError> {
 
             println!("Finished fetching image");
 
-            Box::new(AnyResolver::from(image))
+            image.into()
         },
         Source::Registry(registry) => {
             println!("Searching for remote image '{}'", reference.green());
-            Box::new(AnyResolver::from(registry))
+            registry.into()
         },
     };
 
-    // let i = resolver.index()?;
-// dbg!(i);
+    let mut manifest_index = 0;
 
-    let c = find_manifests(&resolver)?;
+    for descriptor in find_manifest_descriptors(&resolver)? {
+        if let Some(annotations) = descriptor.annotations()
+            && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
+            && reference_type == "attestation-manifest"
+        {
+            continue;
+        }
 
-    // let mut output = Output::new(&arguments.to);
-    // for manifest in dbg!() {
-    //     println!("{}", manifest);
-    //
-    //     if let Some(annotations) = manifest.annotations()
-    //         && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
-    //         && reference_type == "attestation-manifest"
-    //     {
-    //         continue;
-    //     }
-    //
-    //     for layer in manifest.layers() {
-    //         println!("Searching layer... {}", layer.digest().bright_black());
-    //
-    //         let Some(bytes) = arguments.from.blob(&layer.digest())? else {
-    //             eprintln!("Blob for {} not found", layer.digest());
-    //             continue;
-    //         };
-    //
-    //         let reader = BufReader::new(&bytes[..]);
-    //
-    //         let reader: Box<dyn Read> = match layer.media_type() {
-    //             MediaType::ImageLayer => Box::new(reader),
-    //             MediaType::ImageLayerGzip => Box::new(GzDecoder::new(reader)),
-    //             _ => {
-    //                 eprintln!("Cannot open media type '{}' as layer", layer.media_type());
-    //                 return Err(AppError::UnknownMediaTypeAsLayer(
-    //                     layer.media_type().to_owned(),
-    //                     layer.digest().to_owned()),
-    //                 );
-    //             },
-    //         };
-    //
-    //         let mut archive = Archive::new(reader);
-    //         for entry in archive.entries()? {
-    //             let mut entry = entry?;
-    //             let header = entry.header();
-    //             let path = header.path()?;
-    //             let size = header.size()?;
-    //
-    //             if size == 0 {
-    //                 continue;
-    //             }
-    //
-    //             if !arguments.from.target().glob.is_match(path.as_ref()) {
-    //                 continue;
-    //             }
-    //
-    //             println!("=> Found {}", path.display().green());
-    //             let path_buf = path.to_path_buf();
-    //
-    //             let mut contents = Vec::with_capacity(size as usize);
-    //             entry.read_to_end(&mut contents)?;
-    //
-    //             if !output.add(&path_buf, contents)? {
-    //                 println!("Found match '{}' but was empty", &path_buf.display());
-    //             }
-    //         }
-    //     }
-    // }
+        if !arguments.multi_manifest && manifest_index == 1 {
+            println!("{}", format!("Manifest '{}' matched, but `--multi-manifest` was not enabled", descriptor.digest()).yellow());
+            continue;
+        }
 
-    // if output.flush()? {
-    //     println!("Finished exporting contents to {}", arguments.to.display().green());
-    // } else {
-    //     println!("{}", "Nothing to write".yellow());
-    // }
+        println!("Handling manifest {}", descriptor.digest().blue());
+
+        let mut output = match arguments.multi_manifest {
+            true => Output::dir(&arguments.to.join(descriptor.digest().as_ref())),
+            false => Output::new(&arguments.to),
+        };
+
+        let manifest_bytes = resolver.blob(descriptor.digest())?
+            .ok_or(SourceError::MissingDigest(descriptor.digest().clone()))?;
+
+        let manifest = serde_json::from_slice::<ImageManifest>(&manifest_bytes)
+            .map_err(SourceError::MalformedManifest)?;
+
+        let mut layer_index = 0;
+        'layer: for layer in manifest.layers() {
+            if let Some(limit) = arguments.layer_limit
+                && layer_index >= limit
+            {
+                println!("  Reached layer limit");
+                break;
+            }
+
+            println!("  Searching layer... {}", layer.digest().bright_black());
+
+            let Some(bytes) = resolver.blob(&layer.digest())? else {
+                eprintln!("Blob for {} not found", layer.digest());
+                continue;
+            };
+
+            let reader = BufReader::new(&bytes[..]);
+
+            let reader: Box<dyn Read> = match layer.media_type() {
+                MediaType::ImageLayer => Box::new(reader),
+                MediaType::ImageLayerGzip => Box::new(GzDecoder::new(reader)),
+                _ => {
+                    println!("  Cannot open media type '{}' as layer, skipping", layer.media_type());
+                    continue;
+                },
+            };
+
+            let mut archive = Archive::new(reader);
+            for entry in archive.entries()? {
+                let mut entry = entry?;
+                let header = entry.header();
+                let path = header.path()?;
+                let size = header.size()?;
+
+                if size == 0 {
+                    continue;
+                }
+
+                if !target.glob.is_match(path.as_ref()) {
+                    continue;
+                }
+
+                let d = path.to_string_lossy().to_string();
+                let path_buf = path.to_path_buf();
+
+                let mut contents = Vec::with_capacity(size as usize);
+                entry.read_to_end(&mut contents)?;
+
+                if output.add(&path_buf, contents)? {
+                    println!("    Found {}", d.green());
+                } else {
+                    println!("    Found match '{}' but was empty", &path_buf.display());
+                }
+
+                if arguments.file {
+                    println!("    `--file` argument used, stop searching layer");
+                    break 'layer;
+                }
+            }
+
+            layer_index += 1;
+        }
+
+        manifest_index += 1;
+
+        if output.flush()? {
+            println!("Finished exporting contents of {} to {}", descriptor.digest().blue(), arguments.to.display().green());
+        } else {
+            println!("{}", format!("Nothing to write for {}", descriptor.digest()).yellow());
+        }
+    }
 
     Ok(())
 }

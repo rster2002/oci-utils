@@ -1,2 +1,2 @@
 pub mod docker_source;
-mod docker_image;
+pub mod docker_image;
