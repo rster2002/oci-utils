@@ -11,10 +11,6 @@ pub struct RootArguments {
     /// Where to place the extracted contents.
     pub to: PathBuf,
 
-    /// Whether to only match a single file per manifest.
-    #[arg(long)]
-    pub file: bool,
-
     /// Whether to force the contents to be written to a directory.
     #[arg(long)]
     pub dir: bool,
