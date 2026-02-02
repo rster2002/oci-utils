@@ -25,4 +25,4 @@ jobs:
       - uses: https://github.com/dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - uses: https://github.com/actions-rust-lang/rustfmt
+      - uses: https://github.com/actions-rust-lang/rustfmt@v1
