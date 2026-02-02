@@ -1,4 +1,5 @@
 use crate::modules::app::error::AppError;
+use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
 use crate::modules::docker::DockerError;
 use crate::modules::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
@@ -14,6 +15,7 @@ use tar::Archive;
 use wax::Pattern;
 
 mod error;
+mod functions;
 
 pub fn run() -> Result<(), AppError> {
     let arguments = RootArguments::parse();
@@ -21,7 +23,7 @@ pub fn run() -> Result<(), AppError> {
     let target = arguments.from.target().clone();
     let reference = target.reference();
 
-    let resolver: AnyResolver = match arguments.from {
+    let resolver: AnyResolver = match &arguments.from {
         Source::Docker(docker) => {
             println!("Searching for local image '{}'", reference.green());
             println!("Fetching image...");
@@ -34,11 +36,12 @@ pub fn run() -> Result<(), AppError> {
         }
         Source::Registry(registry) => {
             println!("Searching for remote image '{}'", reference.green());
-            registry.into()
+            registry.clone().into()
         }
     };
 
     let mut manifest_index = 0;
+    let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
     for descriptor in find_manifest_descriptors(&resolver)? {
         if let Some(annotations) = descriptor.annotations()
@@ -48,7 +51,22 @@ pub fn run() -> Result<(), AppError> {
             continue;
         }
 
-        if !arguments.multi_manifest && manifest_index == 1 {
+        if !arguments.platform.is_empty() {
+            let matches = arguments
+                .platform
+                .iter()
+                .any(|selector| selector == descriptor.platform());
+
+            if !matches {
+                println!(
+                    "{} did not any match platform selector",
+                    descriptor.digest().blue()
+                );
+                continue;
+            }
+        }
+
+        if !do_multi_manifest && manifest_index == 1 {
             println!(
                 "{}",
                 format!(
@@ -62,10 +80,7 @@ pub fn run() -> Result<(), AppError> {
 
         println!("Handling manifest {}", descriptor.digest().blue());
 
-        let mut output = match arguments.multi_manifest {
-            true => Output::dir(&arguments.to.join(descriptor.digest().as_ref())),
-            false => Output::new(&arguments.to),
-        };
+        let mut output = output_for_args(&arguments, &descriptor);
 
         let manifest_bytes = resolver
             .blob(descriptor.digest())?

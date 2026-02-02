@@ -20,10 +20,6 @@ impl Source {
             Source::Registry(registry_source) => registry_source.target(),
         }
     }
-
-    pub fn parse_arg(arg: &str) -> Result<Source, SourceError> {
-        Source::from_str(arg)
-    }
 }
 
 impl FromStr for Source {
