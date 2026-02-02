@@ -1,40 +1,73 @@
-use std::fmt::Display;
-use std::str::FromStr;
-use crate::modules::docker::DockerError;
+use std::io::{BufReader, Cursor, Read};
+use bytes::Bytes;
+use oci_spec::image::Digest;
+use tar::Archive;
+use crate::modules::docker::{DockerError, DockerSource};
+use crate::modules::oci::BlobResolver;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct DockerImage {
-    pub repository: String,
-    pub tag: String,
+    bytes: Bytes,
 }
 
-impl FromStr for DockerImage {
-    type Err = DockerError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut iter = s.split(':');
-
-        let repository = iter
-            .next()
-            .ok_or(DockerError::MissingRepository)?;
-
-        let tag = iter
-            .next()
-            .ok_or(DockerError::MissingTag)?;
-
-        if iter.next().is_some() {
-            return Err(DockerError::TooManyDelimiters);
+impl DockerImage {
+    pub fn new(bytes: Bytes) -> DockerImage {
+        DockerImage {
+            bytes,
         }
+    }
 
-        Ok(DockerImage {
-            repository: repository.to_string(),
-            tag: tag.to_string(),
-        })
+    fn create_archive(&self) -> Archive<BufReader<Cursor<&Bytes>>> {
+        let cursor = Cursor::new(&self.bytes);
+        let buf_reader = BufReader::new(cursor);
+        Archive::new(buf_reader)
     }
 }
 
-impl Display for DockerImage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", self.repository, self.tag)
+impl BlobResolver for DockerImage {
+    type Error = DockerError;
+
+    fn index(&self) -> Result<Option<Vec<u8>>, Self::Error> {
+        let mut archive = self.create_archive();
+
+        for entry in archive.entries()? {
+            let mut entry = entry?;
+            let header = entry.header();
+            let path = header.path()?;
+
+            if path.as_ref() == "index.json" {
+                let index_size = entry.header().size()?;
+                let mut contents = Vec::with_capacity(index_size as usize);
+                entry.read_to_end(&mut contents)?;
+
+                return Ok(Some(contents));
+            }
+        }
+
+        Ok(None)
+    }
+
+    fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
+        let search = format!("{}/{}", digest.algorithm(), digest.digest());
+        let mut archive = self.create_archive();
+
+        for entry in archive.entries()? {
+            let mut entry = entry?;
+            let header = entry.header();
+            let path = header.path()?;
+
+            if !path.starts_with("blobs") {
+                continue;
+            }
+
+            if path.ends_with(&search) {
+                let mut contents = Vec::with_capacity(header.size()? as usize);
+                entry.read_to_end(&mut contents)?;
+
+                return Ok(Some(contents));
+            }
+        }
+
+        Ok(None)
     }
 }

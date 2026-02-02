@@ -2,4 +2,4 @@ mod models;
 mod error;
 
 pub use error::RegistryError;
-pub use models::registry_target::RegistryTarget;
+pub use models::registry_source::RegistrySource;

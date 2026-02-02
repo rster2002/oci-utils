@@ -2,7 +2,7 @@ use std::str::FromStr;
 use oci_spec::image::Platform;
 use crate::modules::registry::RegistryError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PlatformSelector {
     All,
     Specific(Platform),

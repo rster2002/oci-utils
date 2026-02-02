@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use clap::Parser;
-use crate::modules::target::Target;
+use crate::modules::source::Source;
 
 #[derive(Debug, Parser)]
-pub struct CliRoot {
+pub struct RootArguments {
     /// The target to pull the contents from.
-    #[arg(value_parser = Target::parse_arg)]
-    pub from: Target,
+    #[arg(value_parser = Source::parse_arg)]
+    pub from: Source,
 
     /// Where to place the extracted contents.
     pub to: PathBuf,
@@ -22,4 +22,8 @@ pub struct CliRoot {
     /// The number of layers to search.
     #[arg(long = "limit", short = 'n')]
     pub layer_limit: Option<usize>,
+
+    /// Whether to export all matching manifest, or to only export the first.
+    #[arg(long, short)]
+    pub multi_manifest: bool,
 }

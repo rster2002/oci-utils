@@ -1,39 +1,21 @@
 use reqwest::header::InvalidHeaderValue;
 use thiserror::Error;
-use crate::modules::layer::LayerError;
+use crate::modules::target::TargetError;
 
 #[derive(Debug, Error)]
+#[error(transparent)]
 pub enum RegistryError {
-    #[error("Request failed: {0}")]
-    Reqwest(#[from] reqwest::Error),
-
-    #[error("Invalid wax pattern: {0}")]
-    WaxError(#[from] wax::BuildError),
-
-    #[error("Invalid header value: {0}")]
+    TargetError(#[from] TargetError),
     InvalidHeaderValue(#[from] InvalidHeaderValue),
+    Reqwest(#[from] reqwest::Error),
+    UrlError(#[from] url::ParseError),
 
-    #[error("Failed to parse url: {0}")]
-    UrlParseError(#[from] url::ParseError),
-
-    #[error("Failed to parse json value: {0}")]
-    SerdeJson(#[from] serde_json::Error),
-
-    #[error("Layer error: {0}")]
-    LayerError(#[from] LayerError),
-    
     #[error("Invalid scheme")]
     InvalidScheme,
 
     #[error("Missing host")]
     MissingHost,
 
-    #[error("Missing repository")]
-    MissingRepository,
-
-    #[error("Missing path")]
-    MissingPath,
-    
     #[error("Missing os in platform string")]
     MissingOs,
 

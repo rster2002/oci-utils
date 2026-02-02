@@ -2,6 +2,7 @@ use std::fmt::{Debug, Formatter};
 use url::Url;
 use crate::modules::registry::RegistryError;
 
+#[derive(Clone)]
 pub enum RegistryCredentials {
     None,
     UsernamePassword(String, String),
