@@ -6,5 +6,5 @@ jobs:
     runs-on: docker
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
-      - uses: https://forgejo.app.jumpdrive.dev/actions/setup-rust-toolchain@v1
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
       - run: cargo build --release
