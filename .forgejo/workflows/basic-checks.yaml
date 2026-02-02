@@ -3,6 +3,7 @@ on:
 
 jobs:
   basic-build:
+    name: Crate compiles
     runs-on: docker
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
@@ -10,6 +11,7 @@ jobs:
       - run: cargo build --release
 
   clippy:
+    name: Crate passes clippy lints
     runs-on: docker
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
@@ -19,6 +21,7 @@ jobs:
       - run: cargo clippy --all-features
 
   fmt:
+    name: Crate passes fmt checks
     runs-on: docker
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
