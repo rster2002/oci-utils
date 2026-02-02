@@ -1,6 +1,6 @@
-use std::str::FromStr;
-use oci_spec::image::Platform;
 use crate::modules::registry::RegistryError;
+use oci_spec::image::Platform;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub enum PlatformSelector {
@@ -36,13 +36,9 @@ impl FromStr for PlatformSelector {
 
         let mut parts = s.split('/');
 
-        let os = parts.next()
-            .ok_or(RegistryError::MissingOs)?
-            .into();
+        let os = parts.next().ok_or(RegistryError::MissingOs)?.into();
 
-        let arch = parts.next()
-            .ok_or(RegistryError::MissingArch)?
-            .into();
+        let arch = parts.next().ok_or(RegistryError::MissingArch)?.into();
 
         platform.set_os(os);
         platform.set_architecture(arch);

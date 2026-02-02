@@ -1,11 +1,11 @@
-use std::str::FromStr;
-use oci_spec::image::Digest;
-use url::Url;
 use crate::modules::docker::DockerSource;
 use crate::modules::oci::BlobResolver;
 use crate::modules::registry::RegistrySource;
 use crate::modules::source::error::SourceError;
 use crate::modules::target::Target;
+use oci_spec::image::Digest;
+use std::str::FromStr;
+use url::Url;
 
 #[derive(Debug, Clone)]
 pub enum Source {

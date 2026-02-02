@@ -1,9 +1,9 @@
-use std::io::{BufReader, Cursor, Read};
-use bytes::Bytes;
-use oci_spec::image::Digest;
-use tar::Archive;
 use crate::modules::docker::{DockerError, DockerSource};
 use crate::modules::oci::BlobResolver;
+use bytes::Bytes;
+use oci_spec::image::Digest;
+use std::io::{BufReader, Cursor, Read};
+use tar::Archive;
 
 #[derive(Debug)]
 pub struct DockerImage {
@@ -12,9 +12,7 @@ pub struct DockerImage {
 
 impl DockerImage {
     pub fn new(bytes: Bytes) -> DockerImage {
-        DockerImage {
-            bytes,
-        }
+        DockerImage { bytes }
     }
 
     fn create_archive(&self) -> Archive<BufReader<Cursor<&Bytes>>> {

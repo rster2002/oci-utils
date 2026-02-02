@@ -1,6 +1,6 @@
+use crate::modules::output::models::output_mode::OutputMode;
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::modules::output::models::output_mode::OutputMode;
 
 /// Efficiently exports contents to the target path, writing when needed. If no file was found then
 /// nothing will be written. When the first file is found, then it will keep the path and contents
@@ -27,7 +27,7 @@ impl Output {
             mode: OutputMode::Dir,
         }
     }
-    
+
     pub fn is_file(&self) -> bool {
         matches!(self.mode, OutputMode::File(_, _))
     }
@@ -73,7 +73,7 @@ impl Output {
 
                 fs::write(self.path, contents)?;
                 true
-            },
+            }
             OutputMode::Dir => true,
         })
     }

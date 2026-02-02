@@ -1,17 +1,17 @@
-use std::io::{BufReader, Read};
-use std::marker::PhantomData;
+use crate::modules::app::error::AppError;
+use crate::modules::cli::RootArguments;
+use crate::modules::docker::DockerError;
+use crate::modules::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
+use crate::modules::output::Output;
+use crate::modules::source::{Source, SourceError};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::{Digest, ImageManifest, MediaType};
 use owo_colors::OwoColorize;
+use std::io::{BufReader, Read};
+use std::marker::PhantomData;
 use tar::Archive;
 use wax::Pattern;
-use crate::modules::app::error::AppError;
-use crate::modules::cli::RootArguments;
-use crate::modules::docker::DockerError;
-use crate::modules::oci::{find_manifest_descriptors, AnyResolver, BlobResolver};
-use crate::modules::output::Output;
-use crate::modules::source::{Source, SourceError};
 
 mod error;
 
@@ -31,11 +31,11 @@ pub fn run() -> Result<(), AppError> {
             println!("Finished fetching image");
 
             image.into()
-        },
+        }
         Source::Registry(registry) => {
             println!("Searching for remote image '{}'", reference.green());
             registry.into()
-        },
+        }
     };
 
     let mut manifest_index = 0;
@@ -49,7 +49,14 @@ pub fn run() -> Result<(), AppError> {
         }
 
         if !arguments.multi_manifest && manifest_index == 1 {
-            println!("{}", format!("Manifest '{}' matched, but `--multi-manifest` was not enabled", descriptor.digest()).yellow());
+            println!(
+                "{}",
+                format!(
+                    "Manifest '{}' matched, but `--multi-manifest` was not enabled",
+                    descriptor.digest()
+                )
+                .yellow()
+            );
             continue;
         }
 
@@ -60,7 +67,8 @@ pub fn run() -> Result<(), AppError> {
             false => Output::new(&arguments.to),
         };
 
-        let manifest_bytes = resolver.blob(descriptor.digest())?
+        let manifest_bytes = resolver
+            .blob(descriptor.digest())?
             .ok_or(SourceError::MissingDigest(descriptor.digest().clone()))?;
 
         let manifest = serde_json::from_slice::<ImageManifest>(&manifest_bytes)
@@ -88,9 +96,12 @@ pub fn run() -> Result<(), AppError> {
                 MediaType::ImageLayer => Box::new(reader),
                 MediaType::ImageLayerGzip => Box::new(GzDecoder::new(reader)),
                 _ => {
-                    println!("  Cannot open media type '{}' as layer, skipping", layer.media_type());
+                    println!(
+                        "  Cannot open media type '{}' as layer, skipping",
+                        layer.media_type()
+                    );
                     continue;
-                },
+                }
             };
 
             let mut archive = Archive::new(reader);
@@ -132,9 +143,16 @@ pub fn run() -> Result<(), AppError> {
         manifest_index += 1;
 
         if output.flush()? {
-            println!("Finished exporting contents of {} to {}", descriptor.digest().blue(), arguments.to.display().green());
+            println!(
+                "Finished exporting contents of {} to {}",
+                descriptor.digest().blue(),
+                arguments.to.display().green()
+            );
         } else {
-            println!("{}", format!("Nothing to write for {}", descriptor.digest()).yellow());
+            println!(
+                "{}",
+                format!("Nothing to write for {}", descriptor.digest()).yellow()
+            );
         }
     }
 

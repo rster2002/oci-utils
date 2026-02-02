@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-use clap::Parser;
 use crate::modules::source::Source;
+use clap::Parser;
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct RootArguments {

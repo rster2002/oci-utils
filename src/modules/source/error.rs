@@ -1,7 +1,7 @@
-use oci_spec::image::Digest;
-use thiserror::Error;
 use crate::modules::docker::DockerError;
 use crate::modules::registry::RegistryError;
+use oci_spec::image::Digest;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]

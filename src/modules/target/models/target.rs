@@ -1,5 +1,5 @@
-use wax::Glob;
 use crate::modules::target::error::TargetError;
+use wax::Glob;
 
 #[derive(Debug, Clone)]
 pub struct Target {
@@ -14,10 +14,10 @@ impl Target {
     }
 
     pub fn try_from<'a, T>(mut iterator: T) -> Result<Target, TargetError>
-    where T : Iterator<Item = &'a str>
+    where
+        T: Iterator<Item = &'a str>,
     {
-        let repository = iterator.next()
-            .ok_or(TargetError::MissingRepository)?;
+        let repository = iterator.next().ok_or(TargetError::MissingRepository)?;
 
         let (pattern, tag) = match (iterator.next(), iterator.next()) {
             (Some(tag), Some(path)) => (path, tag),
@@ -28,9 +28,7 @@ impl Target {
         Ok(Target {
             repository: repository.to_string(),
             tag: tag.to_string(),
-            glob: pattern
-                .trim_start_matches('/')
-                .parse()?,
+            glob: pattern.trim_start_matches('/').parse()?,
         })
     }
 }

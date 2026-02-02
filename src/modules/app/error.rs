@@ -1,8 +1,8 @@
-use oci_spec::image::{Digest, MediaType};
-use thiserror::Error;
 use crate::modules::docker::DockerError;
 use crate::modules::oci::OciError;
 use crate::modules::source::SourceError;
+use oci_spec::image::{Digest, MediaType};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]

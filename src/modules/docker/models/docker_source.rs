@@ -1,12 +1,12 @@
-use std::io::{BufReader, Cursor, Read};
-use bytes::Bytes;
-use oci_spec::image::Digest;
-use tar::Archive;
-use url::Url;
 use crate::modules::docker::error::DockerError;
 use crate::modules::docker::models::docker_image::DockerImage;
 use crate::modules::oci::BlobResolver;
 use crate::modules::target::Target;
+use bytes::Bytes;
+use oci_spec::image::Digest;
+use std::io::{BufReader, Cursor, Read};
+use tar::Archive;
+use url::Url;
 
 #[derive(Debug, Clone)]
 pub struct DockerSource(Target);
@@ -17,13 +17,14 @@ impl DockerSource {
     pub fn target(&self) -> &Target {
         &self.0
     }
-    
+
     pub fn fetch_image(&self) -> Result<DockerImage, DockerError> {
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")
             .build()?;
 
-        let bytes = client.get(format!("http://docker/images/{}/get", self.0.reference()))
+        let bytes = client
+            .get(format!("http://docker/images/{}/get", self.0.reference()))
             .send()?
             .bytes()?;
 

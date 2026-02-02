@@ -1,0 +1,31 @@
+on:
+  push:
+
+jobs:
+  basic-build:
+    name: Crate compiles
+    runs-on: docker
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+
+  clippy:
+    name: Crate passes clippy lints
+    runs-on: docker
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-features
+
+  fmt:
+    name: Crate passes fmt checks
+    runs-on: docker
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://github.com/dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: https://github.com/actions-rust-lang/rustfmt@v1

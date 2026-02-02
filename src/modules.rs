@@ -1,8 +1,8 @@
-pub mod source;
-pub mod target;
+pub mod app;
+pub mod cli;
 pub mod docker;
 pub mod oci;
-pub mod cli;
-pub mod app;
 pub mod output;
 pub mod registry;
+pub mod source;
+pub mod target;

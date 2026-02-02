@@ -1,6 +1,6 @@
+use crate::modules::target::TargetError;
 use reqwest::header::InvalidHeaderValue;
 use thiserror::Error;
-use crate::modules::target::TargetError;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
