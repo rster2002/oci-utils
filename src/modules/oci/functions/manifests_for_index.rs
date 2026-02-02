@@ -1,9 +1,13 @@
-use oci_spec::image::{Descriptor, ImageIndex, ImageManifest, MediaType};
 use crate::modules::oci::BlobResolver;
 use crate::modules::oci::error::OciError;
+use oci_spec::image::{Descriptor, ImageIndex, ImageManifest, MediaType};
 
-pub fn manifest_descriptors_for_index<T>(driver: &T, index: &ImageIndex) -> Result<Vec<Descriptor>, OciError<T::Error>>
-where T : BlobResolver,
+pub fn manifest_descriptors_for_index<T>(
+    driver: &T,
+    index: &ImageIndex,
+) -> Result<Vec<Descriptor>, OciError<T::Error>>
+where
+    T: BlobResolver,
 {
     let mut results = Vec::new();
 
@@ -11,7 +15,7 @@ where T : BlobResolver,
         match descriptor.media_type() {
             MediaType::ImageManifest => {
                 results.push(descriptor.clone());
-            },
+            }
             MediaType::ImageIndex => {
                 let Some(blob) = driver.blob(&descriptor.digest())? else {
                     continue;
@@ -22,7 +26,7 @@ where T : BlobResolver,
 
                 let mut manifests = manifest_descriptors_for_index(driver, &index)?;
                 results.append(&mut manifests);
-            },
+            }
             _ => continue,
         }
     }

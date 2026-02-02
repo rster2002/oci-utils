@@ -1,9 +1,9 @@
-use std::marker::PhantomData;
-use oci_spec::image::Digest;
 use crate::modules::docker::DockerImage;
 use crate::modules::oci::BlobResolver;
 use crate::modules::registry::RegistrySource;
 use crate::modules::source::SourceError;
+use oci_spec::image::Digest;
+use std::marker::PhantomData;
 
 #[derive(Debug)]
 pub enum AnyResolver {

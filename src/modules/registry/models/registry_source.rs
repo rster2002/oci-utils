@@ -1,14 +1,14 @@
-use std::str::FromStr;
+use crate::modules::oci::BlobResolver;
+use crate::modules::registry::RegistryError;
+use crate::modules::registry::models::registry_credentials::RegistryCredentials;
+use crate::modules::target::Target;
 use base64::Engine;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use oci_spec::image::Digest;
 use reqwest::blocking::Client;
-use reqwest::header::{HeaderMap, AUTHORIZATION};
+use reqwest::header::{AUTHORIZATION, HeaderMap};
+use std::str::FromStr;
 use url::{Host, Url};
-use crate::modules::oci::BlobResolver;
-use crate::modules::registry::models::registry_credentials::RegistryCredentials;
-use crate::modules::registry::RegistryError;
-use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
 pub struct RegistrySource {
@@ -32,10 +32,11 @@ impl RegistrySource {
         let mut builder = Client::builder();
 
         match &self.credentials {
-            RegistryCredentials::None => {},
+            RegistryCredentials::None => {}
             RegistryCredentials::UsernamePassword(username, password) => {
                 let mut headers = HeaderMap::new();
-                let credentials_value = BASE64_URL_SAFE_NO_PAD.encode(format!("{}:{}", username, password));
+                let credentials_value =
+                    BASE64_URL_SAFE_NO_PAD.encode(format!("{}:{}", username, password));
                 let value = format!("Basic {}", credentials_value);
 
                 headers.insert(AUTHORIZATION, value.parse()?);
@@ -61,15 +62,11 @@ impl TryFrom<&Url> for RegistrySource {
             return Err(RegistryError::InvalidScheme);
         }
 
-        let https = value.scheme() != "https+docker"
-            || value.scheme() != "docker+https";
+        let https = value.scheme() != "https+docker" || value.scheme() != "docker+https";
 
-        let host = value.host()
-            .ok_or(RegistryError::MissingHost)?
-            .to_owned();
+        let host = value.host().ok_or(RegistryError::MissingHost)?.to_owned();
 
-        let segments = value.path()
-            .split(':');
+        let segments = value.path().split(':');
 
         let target = Target::try_from(segments)?;
         let credentials = RegistryCredentials::try_from(value)?;
@@ -99,13 +96,12 @@ impl BlobResolver for RegistrySource {
         let client = self.create_client()?;
 
         let mut manifest_url = self.create_base_url()?;
-        manifest_url.set_path(&format!("v2/{}/manifests/{}", self.target.repository, self.target.tag));
+        manifest_url.set_path(&format!(
+            "v2/{}/manifests/{}",
+            self.target.repository, self.target.tag
+        ));
 
-        let bytes = client
-            .get(manifest_url)
-            .send()?
-            .bytes()?
-            .to_vec();
+        let bytes = client.get(manifest_url).send()?.bytes()?.to_vec();
 
         Ok(Some(bytes))
     }
@@ -116,10 +112,7 @@ impl BlobResolver for RegistrySource {
         let mut blob_url = self.create_base_url()?;
         blob_url.set_path(&format!("v2/{}/blobs/{}", self.target.repository, digest));
 
-        let bytes = client.get(blob_url)
-            .send()?
-            .bytes()?
-            .to_vec();
+        let bytes = client.get(blob_url).send()?.bytes()?.to_vec();
 
         Ok(Some(bytes))
     }
