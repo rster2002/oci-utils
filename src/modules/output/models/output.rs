@@ -29,11 +29,11 @@ impl Output {
     }
     
     pub fn is_file(&self) -> bool {
-        matches!(self.mode, TargetResultMode::File(_, _))
+        matches!(self.mode, OutputMode::File(_, _))
     }
 
     pub fn is_dir(&self) -> bool {
-        matches!(self.mode, TargetResultMode::Dir)
+        matches!(self.mode, OutputMode::Dir)
     }
 
     pub fn add<P: AsRef<Path>>(
