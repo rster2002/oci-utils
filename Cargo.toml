@@ -21,3 +21,6 @@ tar = "0.4.44"
 thiserror = "2.0.18"
 url = "2.5.8"
 wax = { version = "0.6.0", default-features = false }
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
