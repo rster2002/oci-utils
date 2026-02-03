@@ -831,7 +831,7 @@ dependencies = [
 
 [[package]]
 name = "ocicp"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "base64",
  "bytes",
@@ -840,7 +840,6 @@ dependencies = [
  "oci-spec",
  "owo-colors",
  "reqwest",
- "serde",
  "serde_json",
  "sha2",
  "tar",

@@ -19,7 +19,7 @@
   {
     packages.default = pkgs.rustPlatform.buildRustPackage {
       pname = "ocicp";
-      version = "0.4.0";
+      version = "0.5.0";
       cargoLock.lockFile = ./Cargo.lock;
       src = pkgs.lib.cleanSource ./.;
     };
