@@ -44,7 +44,7 @@ impl Output {
     pub fn add<P: AsRef<Path>>(
         &mut self,
         path: P,
-        contents: Vec<u8>,
+        contents: &[u8],
         mode: u32,
     ) -> Result<bool, std::io::Error> {
         if contents.len() == 0 {
@@ -53,7 +53,7 @@ impl Output {
 
         match &self.mode {
             OutputMode::None => {
-                self.mode = OutputMode::File(path.as_ref().to_path_buf(), contents, mode);
+                self.mode = OutputMode::File(path.as_ref().to_path_buf(), contents.to_vec(), mode);
             }
             OutputMode::File(existing_path, existing_contents, existing_mode) => {
                 self.write_as_dir(existing_path, &existing_contents, *existing_mode)?;
@@ -87,7 +87,7 @@ impl Output {
     fn write_as_dir<P: AsRef<Path>>(
         &self,
         path: P,
-        contents: &Vec<u8>,
+        contents: &[u8],
         mode: u32,
     ) -> Result<(), std::io::Error> {
         let final_path = self.path.join(&path);

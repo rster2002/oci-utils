@@ -8,6 +8,7 @@ use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};
 use owo_colors::OwoColorize;
 use std::io::{BufReader, Read};
+use sha2::{Digest, Sha256};
 use tar::Archive;
 use wax::Pattern;
 
@@ -67,7 +68,7 @@ pub fn run() -> Result<(), AppError> {
             println!(
                 "{}",
                 format!(
-                    "Manifest '{}' matched, but `--multi-manifest` was not enabled",
+                    "Manifest {} matched, but `--multi-manifest` was not enabled",
                     descriptor.digest()
                 )
                 .yellow()
@@ -139,14 +140,18 @@ pub fn run() -> Result<(), AppError> {
                 let mut contents = Vec::with_capacity(size as usize);
                 entry.read_to_end(&mut contents)?;
 
-                if output.add(&path_buf, contents, mode)? {
-                    println!("    Found {}", d.green());
+                if output.add(&path_buf, &contents, mode)? {
+                    if arguments.file {
+                        println!("    Found {} {}", d.green(), format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black());
+                    } else {
+                        println!("    Found {} {}", d.green(), format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black());
+                    }
                 } else {
                     println!("    Found match '{}' but was empty", &path_buf.display());
                 }
 
                 if arguments.file {
-                    println!("    `--file` argument used, stop searching layer");
+                    println!("{}", "    --file argument used, stop searching layer".bright_black());
                     break 'layer;
                 }
             }
@@ -158,14 +163,14 @@ pub fn run() -> Result<(), AppError> {
 
         if output.flush()? {
             println!(
-                "Finished exporting contents of {} to {}",
+                "  Finished exporting contents of {} to {}",
                 descriptor.digest().blue(),
                 arguments.to.display().green()
             );
         } else {
             println!(
                 "{}",
-                format!("Nothing to write for {}", descriptor.digest()).yellow()
+                format!("  Nothing to write for {}", descriptor.digest()).yellow()
             );
         }
     }
