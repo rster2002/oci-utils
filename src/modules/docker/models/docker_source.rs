@@ -1,9 +1,7 @@
 use crate::modules::docker::error::DockerError;
 use crate::modules::docker::models::docker_image::DockerImage;
-use crate::modules::oci::BlobResolver;
 use crate::modules::target::Target;
 use bytes::Bytes;
-use oci_spec::image::Digest;
 use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 use url::Url;

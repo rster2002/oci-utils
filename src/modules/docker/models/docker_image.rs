@@ -1,4 +1,4 @@
-use crate::modules::docker::{DockerError, DockerSource};
+use crate::modules::docker::DockerError;
 use crate::modules::oci::BlobResolver;
 use bytes::Bytes;
 use oci_spec::image::Digest;

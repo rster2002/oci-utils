@@ -1,6 +1,6 @@
 use crate::modules::oci::BlobResolver;
 use crate::modules::oci::error::OciError;
-use oci_spec::image::{Descriptor, ImageIndex, ImageManifest, MediaType};
+use oci_spec::image::{Descriptor, ImageIndex, MediaType};
 
 pub fn manifest_descriptors_for_index<T>(
     driver: &T,
@@ -17,12 +17,12 @@ where
                 results.push(descriptor.clone());
             }
             MediaType::ImageIndex => {
-                let Some(blob) = driver.blob(&descriptor.digest())? else {
+                let Some(blob) = driver.blob(descriptor.digest())? else {
                     continue;
                 };
 
                 let index = serde_json::from_slice::<ImageIndex>(&blob)
-                    .map_err(|e| OciError::FailedToParseIndex(e))?;
+                    .map_err(OciError::FailedToParseIndex)?;
 
                 let mut manifests = manifest_descriptors_for_index(driver, &index)?;
                 results.append(&mut manifests);

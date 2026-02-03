@@ -1,14 +1,14 @@
 use crate::modules::app::error::AppError;
 use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
-use crate::modules::oci::{find_manifest_descriptors, AnyResolver, BlobResolver};
+use crate::modules::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
 use crate::modules::source::{Source, SourceError};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};
 use owo_colors::OwoColorize;
-use std::io::{BufReader, Read};
 use sha2::{Digest, Sha256};
+use std::io::{BufReader, Read};
 use tar::Archive;
 use wax::Pattern;
 
@@ -98,7 +98,7 @@ pub fn run() -> Result<(), AppError> {
 
             println!("  Searching layer... {}", layer.digest().bright_black());
 
-            let Some(bytes) = resolver.blob(&layer.digest())? else {
+            let Some(bytes) = resolver.blob(layer.digest())? else {
                 eprintln!("Blob for {} not found", layer.digest());
                 continue;
             };
@@ -123,8 +123,7 @@ pub fn run() -> Result<(), AppError> {
                 let header = entry.header();
                 let path = header.path()?;
                 let size = header.size()?;
-                let mode = header.mode()
-                    .unwrap_or(0o644);
+                let mode = header.mode().unwrap_or(0o644);
 
                 if size == 0 {
                     continue;
@@ -141,17 +140,20 @@ pub fn run() -> Result<(), AppError> {
                 entry.read_to_end(&mut contents)?;
 
                 if output.add(&path_buf, &contents, mode)? {
-                    if arguments.file {
-                        println!("    Found {} {}", d.green(), format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black());
-                    } else {
-                        println!("    Found {} {}", d.green(), format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black());
-                    }
+                    println!(
+                        "    Found {} {}",
+                        d.green(),
+                        format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black()
+                    );
                 } else {
                     println!("    Found match '{}' but was empty", &path_buf.display());
                 }
 
                 if arguments.file {
-                    println!("{}", "    --file argument used, stop searching layer".bright_black());
+                    println!(
+                        "{}",
+                        "    --file argument used, stop searching layer".bright_black()
+                    );
                     break 'layer;
                 }
             }

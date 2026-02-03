@@ -7,7 +7,6 @@ use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use oci_spec::image::Digest;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
-use std::str::FromStr;
 use url::{Host, Url};
 
 #[derive(Debug, Clone)]

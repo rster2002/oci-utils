@@ -47,7 +47,7 @@ impl Output {
         contents: &[u8],
         mode: u32,
     ) -> Result<bool, std::io::Error> {
-        if contents.len() == 0 {
+        if contents.is_empty() {
             return Ok(false);
         }
 
@@ -56,12 +56,12 @@ impl Output {
                 self.mode = OutputMode::File(path.as_ref().to_path_buf(), contents.to_vec(), mode);
             }
             OutputMode::File(existing_path, existing_contents, existing_mode) => {
-                self.write_as_dir(existing_path, &existing_contents, *existing_mode)?;
-                self.write_as_dir(path, &contents, mode)?;
+                self.write_as_dir(existing_path, existing_contents, *existing_mode)?;
+                self.write_as_dir(path, contents, mode)?;
                 self.mode = OutputMode::Dir;
             }
             OutputMode::Dir => {
-                self.write_as_dir(path, &contents, mode)?;
+                self.write_as_dir(path, contents, mode)?;
             }
         }
 
@@ -96,7 +96,7 @@ impl Output {
             fs::create_dir_all(parent)?;
         }
 
-        Self::write_file(path, &contents, mode)
+        Self::write_file(path, contents, mode)
     }
 
     fn write_file<P: AsRef<Path>>(
@@ -105,7 +105,7 @@ impl Output {
         mode: u32,
     ) -> Result<(), std::io::Error> {
         let mut file = File::create(path)?;
-        file.write_all(&contents)?;
+        file.write_all(contents)?;
 
         #[cfg(target_family = "unix")]
         {

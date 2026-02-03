@@ -4,7 +4,7 @@ use oci_spec::image::Descriptor;
 
 pub fn output_for_args(arguments: &RootArguments, descriptor: &Descriptor) -> Output {
     if arguments.multi_manifest {
-        return Output::dir(&arguments.to.join(descriptor.digest().as_ref()));
+        return Output::dir(arguments.to.join(descriptor.digest().as_ref()));
     }
 
     if let Some(platform) = descriptor.platform()
