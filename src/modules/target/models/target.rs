@@ -17,7 +17,8 @@ impl Target {
     where
         T: Iterator<Item = &'a str>,
     {
-        let repository = iterator.next()
+        let repository = iterator
+            .next()
             .ok_or(TargetError::MissingRepository)?
             .trim_start_matches('/');
 
