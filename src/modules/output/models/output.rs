@@ -46,11 +46,7 @@ impl Output {
         path: P,
         contents: &[u8],
         mode: u32,
-    ) -> Result<bool, std::io::Error> {
-        if contents.is_empty() {
-            return Ok(false);
-        }
-
+    ) -> Result<(), std::io::Error> {
         match &self.mode {
             OutputMode::None => {
                 self.mode = OutputMode::File(path.as_ref().to_path_buf(), contents.to_vec(), mode);
@@ -65,7 +61,7 @@ impl Output {
             }
         }
 
-        Ok(true)
+        Ok(())
     }
 
     /// Writes any remaining content and returns whether this output has written any output.
@@ -96,7 +92,7 @@ impl Output {
             fs::create_dir_all(parent)?;
         }
 
-        Self::write_file(path, contents, mode)
+        Self::write_file(final_path, contents, mode)
     }
 
     fn write_file<P: AsRef<Path>>(

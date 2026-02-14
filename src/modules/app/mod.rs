@@ -139,20 +139,23 @@ pub fn run() -> Result<(), AppError> {
                 let mut contents = Vec::with_capacity(size as usize);
                 entry.read_to_end(&mut contents)?;
 
-                if output.add(&path_buf, &contents, mode)? {
-                    println!(
-                        "    Found {} {}",
-                        d.green(),
-                        format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black()
-                    );
-                } else {
+                if contents.is_empty() {
                     println!("    Found match '{}' but was empty", &path_buf.display());
+                    continue;
                 }
 
-                if arguments.file {
+                output.add(&path_buf, &contents, mode)?;
+
+                println!(
+                    "    Found {} {}",
+                    d.green(),
+                    format!("sha256sum:{:x}", Sha256::digest(&contents)).bright_black()
+                );
+
+                if arguments.first {
                     println!(
                         "{}",
-                        "    --file argument used, stop searching layer".bright_black()
+                        "    --first argument used, stop searching manifest".bright_black()
                     );
                     break 'layer;
                 }
@@ -165,8 +168,7 @@ pub fn run() -> Result<(), AppError> {
 
         if output.flush()? {
             println!(
-                "  Finished exporting contents of {} to {}",
-                descriptor.digest().blue(),
+                "  Finished exporting contents to {}",
                 arguments.to.display().green()
             );
         } else {

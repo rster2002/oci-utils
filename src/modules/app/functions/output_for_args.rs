@@ -18,5 +18,9 @@ pub fn output_for_args(arguments: &RootArguments, descriptor: &Descriptor) -> Ou
         return Output::dir(path);
     }
 
+    if arguments.dir {
+        return Output::dir(arguments.to.clone());
+    }
+
     Output::new(&arguments.to)
 }
