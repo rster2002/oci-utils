@@ -3,16 +3,18 @@ use crate::modules::registry::RegistryError;
 use crate::modules::registry::models::registry_credentials::RegistryCredentials;
 use crate::modules::target::Target;
 use base64::Engine;
-use base64::prelude::BASE64_URL_SAFE_NO_PAD;
+use base64::prelude::{BASE64_URL_SAFE, BASE64_URL_SAFE_NO_PAD};
 use oci_spec::image::Digest;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use url::{Host, Url};
+use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
+use crate::modules::registry::functions::real_scheme::real_scheme;
 
 #[derive(Debug, Clone)]
 pub struct RegistrySource {
     target: Target,
-    https: bool,
+    scheme: String,
     host: Host,
     credentials: RegistryCredentials,
 }
@@ -23,8 +25,7 @@ impl RegistrySource {
     }
 
     fn create_base_url(&self) -> Result<Url, RegistryError> {
-        let scheme = if self.https { "https" } else { "http" };
-        Ok(Url::parse(&format!("{}://{}", scheme, self.host))?)
+        Ok(Url::parse(&format!("{}://{}", self.scheme, self.host))?)
     }
 
     fn create_client(&self) -> Result<Client, RegistryError> {
@@ -41,6 +42,17 @@ impl RegistrySource {
                 headers.insert(AUTHORIZATION, value.parse()?);
 
                 builder = builder.default_headers(headers);
+            },
+            RegistryCredentials::Token(token) => {
+                let json_string = serde_json::to_vec(&IdentityTokenPayload {
+                    identity_token: token.clone()
+                })
+                    .map_err(RegistryError::FailedToFormatIdentityTokenPayload)?;
+
+                let encoded = BASE64_URL_SAFE.encode(json_string);
+
+                let mut headers = HeaderMap::new();
+                headers.insert("X-Registry-Auth", encoded.parse()?);
             }
         }
 
@@ -61,8 +73,6 @@ impl TryFrom<&Url> for RegistrySource {
             return Err(RegistryError::InvalidScheme);
         }
 
-        let https = value.scheme() != "https+docker" || value.scheme() != "docker+https";
-
         let host = value.host().ok_or(RegistryError::MissingHost)?.to_owned();
 
         let segments = value.path().split(':');
@@ -80,7 +90,7 @@ impl TryFrom<&Url> for RegistrySource {
 
         Ok(RegistrySource {
             target,
-            https,
+            scheme: real_scheme(value.scheme()).to_string(),
             host,
             credentials,
             // platform,

@@ -1,10 +1,13 @@
 use crate::modules::registry::RegistryError;
 use std::fmt::{Debug, Formatter};
+use docker_credential::DockerCredential;
 use url::Url;
+use crate::modules::registry::functions::real_scheme::real_scheme;
 
 #[derive(Clone)]
 pub enum RegistryCredentials {
     None,
+    Token(String),
     UsernamePassword(String, String),
 }
 
@@ -15,6 +18,7 @@ impl Debug for RegistryCredentials {
             "{}",
             match self {
                 RegistryCredentials::None => "None",
+                RegistryCredentials::Token(_) => "Token(...)",
                 RegistryCredentials::UsernamePassword(_, _) => "UsernamePassword(..., ...)",
             }
         )
@@ -32,6 +36,16 @@ impl TryFrom<&Url> for RegistryCredentials {
                 value.username().to_string(),
                 password.to_string(),
             ));
+        }
+
+        let registry = format!("{}://{}", real_scheme(value.scheme()), value.host_str().unwrap_or_default());
+
+        if let Ok(credential) = docker_credential::get_credential(&registry)
+        {
+            return Ok(match credential {
+                DockerCredential::IdentityToken(token) => RegistryCredentials::Token(token),
+                DockerCredential::UsernamePassword(username, password) => RegistryCredentials::UsernamePassword(username, password),
+            })
         }
 
         Ok(RegistryCredentials::None)

@@ -10,6 +10,9 @@ pub enum RegistryError {
     Reqwest(#[from] reqwest::Error),
     UrlError(#[from] url::ParseError),
 
+    #[error("Failed to format identity token payload")]
+    FailedToFormatIdentityTokenPayload(#[source] serde_json::Error),
+
     #[error("Invalid scheme")]
     InvalidScheme,
 
