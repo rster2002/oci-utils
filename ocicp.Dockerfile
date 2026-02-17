@@ -1,9 +1,9 @@
 FROM rust:1 AS base
 
 WORKDIR /project
-COPY ./Cargo.toml .
-COPY ./Cargo.lock .
-COPY ./src ./src
+COPY ocicp/Cargo.toml .
+COPY Cargo.lock .
+COPY ocicp/src ./src
 
 RUN mkdir -p /out/bin
 
