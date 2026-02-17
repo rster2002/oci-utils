@@ -1,9 +1,8 @@
-use crate::modules::docker::DockerSource;
-use crate::modules::registry::RegistrySource;
-use crate::modules::source::error::SourceError;
-use crate::modules::target::Target;
 use std::str::FromStr;
 use url::Url;
+use shared::docker::DockerSource;
+use shared::registry::RegistrySource;
+use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
 pub enum Source {

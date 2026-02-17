@@ -1,6 +1,6 @@
-use crate::modules::docker::DockerError;
-use crate::modules::oci::OciError;
-use crate::modules::source::SourceError;
+use shared::modules::::DockerError;
+use shared::modules::::OciError;
+use shared::modules::::SourceError;
 use oci_spec::image::{Digest, MediaType};
 use thiserror::Error;
 

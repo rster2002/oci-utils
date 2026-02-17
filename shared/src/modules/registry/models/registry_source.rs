@@ -1,15 +1,15 @@
-use crate::modules::oci::BlobResolver;
-use crate::modules::registry::RegistryError;
-use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
-use crate::modules::registry::functions::real_scheme::real_scheme;
-use crate::modules::registry::models::registry_credentials::RegistryCredentials;
-use crate::modules::target::Target;
 use base64::Engine;
 use base64::prelude::{BASE64_URL_SAFE, BASE64_URL_SAFE_NO_PAD};
 use oci_spec::image::Digest;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use url::{Host, Url};
+use crate::modules::oci::BlobResolver;
+use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
+use crate::modules::registry::functions::real_scheme::real_scheme;
+use crate::modules::registry::models::registry_credentials::RegistryCredentials;
+use crate::modules::registry::RegistryError;
+use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
 pub struct RegistrySource {
@@ -79,14 +79,6 @@ impl TryFrom<&Url> for RegistrySource {
 
         let target = Target::try_from(segments)?;
         let credentials = RegistryCredentials::try_from(value)?;
-
-        // let mut platform = PlatformSelector::default();
-        //
-        // for (key, value) in value.query_pairs() {
-        //     if key == "platform" {
-        //         platform = PlatformSelector::from_str(&value)?;
-        //     }
-        // }
 
         Ok(RegistrySource {
             target,

@@ -1,8 +1,8 @@
 use crate::modules::app::error::AppError;
 use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
-use crate::modules::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
-use crate::modules::source::{Source, SourceError};
+use shared::modules::::{AnyResolver, BlobResolver, find_manifest_descriptors};
+use shared::modules::::{Source, SourceError};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};

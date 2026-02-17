@@ -1,10 +1,10 @@
-use crate::modules::docker::error::DockerError;
-use crate::modules::docker::models::docker_image::DockerImage;
-use crate::modules::target::Target;
 use bytes::Bytes;
 use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 use url::Url;
+use shared::docker::{DockerImage};
+use crate::modules::docker::error::DockerError;
+use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
 pub struct DockerSource(Target);
@@ -27,11 +27,6 @@ impl DockerSource {
             .bytes()?;
 
         Ok(DockerImage::new(bytes))
-
-        // let cursor = Cursor::new(bytes);
-        // let buf_reader = BufReader::new(cursor);
-        //
-        // Ok(Archive::new(buf_reader))
     }
 }
 
@@ -47,51 +42,3 @@ impl TryFrom<&Url> for DockerSource {
         Ok(DockerSource(Target::try_from(segments)?))
     }
 }
-
-// impl BlobResolver for DockerSource {
-//     type Error = DockerError;
-//
-//     fn index(&self) -> Result<Option<Vec<u8>>, Self::Error> {
-//         let mut archive = self.fetch_archive()?;
-//
-//         for entry in archive.entries()? {
-//             let mut entry = entry?;
-//             let header = entry.header();
-//             let path = header.path()?;
-//
-//             if path.as_ref() == "index.json" {
-//                 let index_size = entry.header().size()?;
-//                 let mut contents = Vec::with_capacity(index_size as usize);
-//                 entry.read_to_end(&mut contents)?;
-//
-//                 return Ok(Some(contents));
-//             }
-//         }
-//
-//         Ok(None)
-//     }
-//
-//     fn blob(&self, digest: &Digest) -> Result<Option<Vec<u8>>, Self::Error> {
-//         let search = format!("{}/{}", digest.algorithm(), digest.digest());
-//         let mut archive = self.fetch_archive()?;
-//
-//         for entry in archive.entries()? {
-//             let mut entry = entry?;
-//             let header = entry.header();
-//             let path = header.path()?;
-//
-//             if !path.starts_with("blobs") {
-//                 continue;
-//             }
-//
-//             if path.ends_with(&search) {
-//                 let mut contents = Vec::with_capacity(header.size()? as usize);
-//                 entry.read_to_end(&mut contents)?;
-//
-//                 return Ok(Some(contents));
-//             }
-//         }
-//
-//         Ok(None)
-//     }
-// }

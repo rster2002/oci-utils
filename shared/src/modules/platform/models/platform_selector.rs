@@ -1,6 +1,6 @@
-use crate::modules::platform::error::PlatformError;
 use oci_spec::image::{Arch, Os, Platform};
 use std::str::FromStr;
+use crate::modules::platform::error::PlatformError;
 
 #[derive(Debug, Clone)]
 pub enum PlatformSelector {

@@ -1,7 +1,6 @@
-use crate::modules::oci::BlobResolver;
-use crate::modules::oci::error::OciError;
-use crate::modules::oci::functions::manifests_for_index::manifest_descriptors_for_index;
 use oci_spec::image::Descriptor;
+use crate::modules::oci::{BlobResolver, OciError};
+use crate::modules::oci::functions::manifests_for_index::manifest_descriptors_for_index;
 
 pub fn find_manifest_descriptors<T>(driver: &T) -> Result<Vec<Descriptor>, OciError<T::Error>>
 where
