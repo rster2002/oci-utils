@@ -1,5 +1,7 @@
 use crate::modules::oci::BlobResolver;
 use crate::modules::registry::RegistryError;
+use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
+use crate::modules::registry::functions::real_scheme::real_scheme;
 use crate::modules::registry::models::registry_credentials::RegistryCredentials;
 use crate::modules::target::Target;
 use base64::Engine;
@@ -8,8 +10,6 @@ use oci_spec::image::Digest;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use url::{Host, Url};
-use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
-use crate::modules::registry::functions::real_scheme::real_scheme;
 
 #[derive(Debug, Clone)]
 pub struct RegistrySource {
@@ -42,12 +42,12 @@ impl RegistrySource {
                 headers.insert(AUTHORIZATION, value.parse()?);
 
                 builder = builder.default_headers(headers);
-            },
+            }
             RegistryCredentials::Token(token) => {
                 let json_string = serde_json::to_vec(&IdentityTokenPayload {
-                    identity_token: token.clone()
+                    identity_token: token.clone(),
                 })
-                    .map_err(RegistryError::FailedToFormatIdentityTokenPayload)?;
+                .map_err(RegistryError::FailedToFormatIdentityTokenPayload)?;
 
                 let encoded = BASE64_URL_SAFE.encode(json_string);
 
