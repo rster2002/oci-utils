@@ -16,8 +16,9 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
     in
-  {
-    packages.default = pkgs.rustPlatform.buildRustPackage {
+  rec {
+    packages.default = packages.ocicp;
+    packages.ocicp = pkgs.rustPlatform.buildRustPackage {
       pname = "ocicp";
       version = "0.6.0";
       cargoLock.lockFile = ./Cargo.lock;
