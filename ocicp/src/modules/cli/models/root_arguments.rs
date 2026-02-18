@@ -27,6 +27,7 @@ pub struct RootArguments {
     #[arg(long, short)]
     pub multi_manifest: bool,
 
+    /// Only process manifests for the given platforms.
     #[arg(long)]
     pub platform: Vec<PlatformSelector>,
 }
