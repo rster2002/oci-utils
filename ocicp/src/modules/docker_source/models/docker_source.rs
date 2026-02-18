@@ -2,19 +2,24 @@ use bytes::Bytes;
 use std::io::{BufReader, Cursor, Read};
 use tar::Archive;
 use url::Url;
+use wax::Glob;
 use shared::docker::{DockerImage};
+use shared::image::ImageRef;
 use crate::modules::docker::error::DockerError;
 use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
-pub struct DockerSource(Target);
+pub struct DockerSource {
+    pub image_ref: ImageRef,
+    pub pattern: Glob<'static>,
+}
 
 type ImageArchive = Archive<BufReader<Cursor<Bytes>>>;
 
 impl DockerSource {
-    pub fn target(&self) -> &Target {
-        &self.0
-    }
+    // pub fn target(&self) -> &Target {
+    //     &self.0
+    // }
 
     pub fn fetch_image(&self) -> Result<DockerImage, DockerError> {
         let client = reqwest::blocking::Client::builder()
@@ -22,7 +27,7 @@ impl DockerSource {
             .build()?;
 
         let bytes = client
-            .get(format!("http://docker/images/{}/get", self.0.reference()))
+            .get(format!("http://docker/images/{}/get", self.image_ref.reference()))
             .send()?
             .bytes()?;
 
@@ -38,7 +43,16 @@ impl TryFrom<&Url> for DockerSource {
             return Err(DockerError::NoDockerScheme);
         }
 
-        let segments = url.path().split(':');
-        Ok(DockerSource(Target::try_from(segments)?))
+        let mut segments = url.path().split(':');
+        let image_ref = ImageRef::try_from(&mut segments)?;
+        let pattern_str = segments.next()
+            .ok_or(DockerError::MissingPattern)?;
+
+        let pattern = Glob::new(pattern_str)?;
+
+        Ok(DockerSource {
+            image_ref,
+            pattern: pattern.into_owned(),
+        })
     }
 }

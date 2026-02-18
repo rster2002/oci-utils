@@ -12,7 +12,7 @@ impl ImageRef {
         format!("{}:{}", self.repository, self.tag)
     }
 
-    pub fn try_from<'a, T>(mut iterator: T) -> Result<ImageRef, ImageError>
+    pub fn try_from<'a, T>(iterator: &mut T) -> Result<ImageRef, ImageError>
     where
         T: Iterator<Item = &'a str>,
     {

@@ -1,9 +1,15 @@
 use thiserror::Error;
+use crate::docker::DockerError;
+use crate::registry::RegistryError;
 
 #[derive(Debug, Error)]
+#[error(transparent)]
 pub enum OciError<T> {
-    #[error("Internal error: {0}")]
-    Inner(#[from] T),
+    RegistryError(#[from] RegistryError),
+    DockerError(#[from] DockerError),
+
+    #[error("{0}")]
+    Inner(#[source] T),
 
     #[error("Image is missing top level index")]
     MissingTopLevelIndex,

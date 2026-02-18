@@ -16,7 +16,7 @@ where
                 results.push(descriptor.clone());
             }
             MediaType::ImageIndex => {
-                let Some(blob) = driver.blob(descriptor.digest())? else {
+                let Some(blob) = driver.blob(descriptor.digest()).map_err(OciError::Inner)? else {
                     continue;
                 };
 

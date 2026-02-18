@@ -1,8 +1,6 @@
 use crate::modules::app::error::AppError;
 use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
-use shared::modules::::{AnyResolver, BlobResolver, find_manifest_descriptors};
-use shared::modules::::{Source, SourceError};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};
@@ -11,6 +9,7 @@ use sha2::{Digest, Sha256};
 use std::io::{BufReader, Read};
 use tar::Archive;
 use wax::Pattern;
+use shared::oci::AnyResolver;
 
 mod error;
 mod functions;

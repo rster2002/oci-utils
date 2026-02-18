@@ -6,7 +6,9 @@ pub fn find_manifest_descriptors<T>(driver: &T) -> Result<Vec<Descriptor>, OciEr
 where
     T: BlobResolver,
 {
-    let index_bytes = driver.index()?.ok_or(OciError::MissingTopLevelIndex)?;
+    let index_bytes = driver.index()
+        .map_err(OciError::Inner)?
+        .ok_or(OciError::MissingTopLevelIndex)?;
 
     let index = serde_json::from_slice(&index_bytes).map_err(OciError::FailedToParseIndex)?;
 
