@@ -3,11 +3,10 @@ use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
 use crate::modules::source::{AnySource, SourceError};
 use clap::Parser;
-use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};
 use owo_colors::OwoColorize;
 use sha2::{Digest, Sha256};
-use shared::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
+use shared::oci::{AnyResolver, BlobResolver, find_manifest_descriptors, wrap_reader};
 use std::io::{BufReader, Read};
 use tar::Archive;
 use wax::Pattern;
@@ -43,7 +42,7 @@ pub fn run() -> Result<(), AppError> {
     let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
     for descriptor in
-        find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))?
+        find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))? // TODO
     {
         if let Some(annotations) = descriptor.annotations()
             && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
@@ -110,18 +109,12 @@ pub fn run() -> Result<(), AppError> {
                 continue;
             };
 
-            let reader = BufReader::new(&bytes[..]);
-
-            let reader: Box<dyn Read> = match layer.media_type() {
-                MediaType::ImageLayer => Box::new(reader),
-                MediaType::ImageLayerGzip => Box::new(GzDecoder::new(reader)),
-                _ => {
-                    println!(
-                        "  Cannot open media type '{}' as layer, skipping",
-                        layer.media_type()
-                    );
-                    continue;
-                }
+            let Some(reader) = wrap_reader(layer.media_type(), BufReader::new(&bytes[..])) else {
+                println!(
+                    "  Cannot open media type '{}' as layer, skipping",
+                    layer.media_type()
+                );
+                continue;
             };
 
             let mut archive = Archive::new(reader);
