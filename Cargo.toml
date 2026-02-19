@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["ocicp"]
+members = ["ocicp", "shared"]
 
 [profile.release]
 strip = true  # Automatically strip symbols from the binary.

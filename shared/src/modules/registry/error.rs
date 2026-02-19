@@ -1,11 +1,12 @@
-use crate::modules::target::TargetError;
+use crate::image::ImageError;
 use reqwest::header::InvalidHeaderValue;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub enum RegistryError {
-    TargetError(#[from] TargetError),
+    // TargetError(#[from] TargetError),
+    ImageError(#[from] ImageError),
     InvalidHeaderValue(#[from] InvalidHeaderValue),
     Reqwest(#[from] reqwest::Error),
     UrlError(#[from] url::ParseError),

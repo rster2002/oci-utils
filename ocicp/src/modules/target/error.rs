@@ -1,13 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+#[error(transparent)]
 pub enum TargetError {
-    #[error("Missing repository in url")]
-    MissingRepository,
-
-    #[error("Missing path in url")]
-    MissingPath,
-
-    #[error("Invalid pattern: {0}")]
-    FailedToParsePattern(#[from] wax::BuildError),
+    ImageError(#[from] shared::image::ImageError),
 }

@@ -1,17 +1,17 @@
 use crate::modules::docker::DockerImage;
 use crate::modules::oci::BlobResolver;
-use crate::modules::registry::RegistrySource;
-use crate::modules::source::SourceError;
+use crate::modules::registry::RegistryResolver;
+use crate::oci::OciError;
 use oci_spec::image::Digest;
 
 #[derive(Debug)]
 pub enum AnyResolver {
     DockerImage(DockerImage),
-    Registry(RegistrySource),
+    Registry(RegistryResolver),
 }
 
 impl BlobResolver for AnyResolver {
-    type Error = SourceError;
+    type Error = OciError<()>;
 
     fn index(&self) -> Result<Option<Vec<u8>>, Self::Error> {
         Ok(match self {
@@ -34,8 +34,8 @@ impl From<DockerImage> for AnyResolver {
     }
 }
 
-impl From<RegistrySource> for AnyResolver {
-    fn from(registry_source: RegistrySource) -> Self {
+impl From<RegistryResolver> for AnyResolver {
+    fn from(registry_source: RegistryResolver) -> Self {
         AnyResolver::Registry(registry_source)
     }
 }

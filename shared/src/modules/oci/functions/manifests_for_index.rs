@@ -1,5 +1,4 @@
-use crate::modules::oci::BlobResolver;
-use crate::modules::oci::error::OciError;
+use crate::modules::oci::{BlobResolver, OciError};
 use oci_spec::image::{Descriptor, ImageIndex, MediaType};
 
 pub fn manifest_descriptors_for_index<T>(
@@ -17,7 +16,7 @@ where
                 results.push(descriptor.clone());
             }
             MediaType::ImageIndex => {
-                let Some(blob) = driver.blob(descriptor.digest())? else {
+                let Some(blob) = driver.blob(descriptor.digest()).map_err(OciError::Inner)? else {
                     continue;
                 };
 

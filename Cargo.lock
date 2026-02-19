@@ -861,6 +861,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "shared",
  "tar",
  "thiserror 2.0.18",
  "url",
@@ -1282,6 +1283,23 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "docker_credential",
+ "oci-spec",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tar",
+ "thiserror 2.0.18",
+ "url",
+ "wax",
 ]
 
 [[package]]

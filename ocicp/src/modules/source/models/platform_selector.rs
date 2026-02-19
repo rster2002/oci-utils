@@ -1,8 +1,9 @@
-use crate::modules::registry::RegistryError;
 use oci_spec::image::Platform;
+use shared::registry::RegistryError;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
+#[deprecated]
 pub enum PlatformSelector {
     All,
     Specific(Platform),

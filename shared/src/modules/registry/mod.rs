@@ -4,4 +4,4 @@ mod functions;
 mod models;
 
 pub use error::RegistryError;
-pub use models::registry_source::RegistrySource;
+pub use models::registry_resolver::RegistryResolver;
