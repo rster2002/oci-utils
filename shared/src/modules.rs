@@ -1,5 +1,5 @@
-pub mod registry;
+pub mod docker;
 pub mod image;
 pub mod oci;
-pub mod docker;
 pub mod platform;
+pub mod registry;

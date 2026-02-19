@@ -1,7 +1,7 @@
 use oci_spec::image::Digest;
-use thiserror::Error;
 use shared::docker::DockerError;
 use shared::registry::RegistryError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]

@@ -1,8 +1,8 @@
-use oci_spec::image::Digest;
 use crate::modules::docker::DockerImage;
 use crate::modules::oci::BlobResolver;
 use crate::modules::registry::RegistryResolver;
 use crate::oci::OciError;
+use oci_spec::image::Digest;
 
 #[derive(Debug)]
 pub enum AnyResolver {

@@ -1,9 +1,9 @@
-use oci_spec::image::Digest;
-use std::io::{BufReader, Cursor, Read};
-use bytes::Bytes;
-use tar::Archive;
 use crate::modules::docker::DockerError;
 use crate::modules::oci::BlobResolver;
+use bytes::Bytes;
+use oci_spec::image::Digest;
+use std::io::{BufReader, Cursor, Read};
+use tar::Archive;
 
 #[derive(Debug)]
 pub struct DockerImage {

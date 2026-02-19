@@ -1,8 +1,8 @@
+use crate::modules::registry::RegistryError;
+use crate::modules::registry::functions::real_scheme::real_scheme;
 use docker_credential::DockerCredential;
 use std::fmt::{Debug, Formatter};
 use url::Url;
-use crate::modules::registry::functions::real_scheme::real_scheme;
-use crate::modules::registry::RegistryError;
 
 #[derive(Clone)]
 pub enum RegistryCredentials {

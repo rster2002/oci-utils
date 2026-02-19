@@ -1,16 +1,16 @@
 use crate::modules::app::error::AppError;
 use crate::modules::app::functions::output_for_args::output_for_args;
 use crate::modules::cli::RootArguments;
+use crate::modules::source::{AnySource, SourceError};
 use clap::Parser;
 use flate2::bufread::GzDecoder;
 use oci_spec::image::{ImageManifest, MediaType};
 use owo_colors::OwoColorize;
 use sha2::{Digest, Sha256};
+use shared::oci::{AnyResolver, BlobResolver, find_manifest_descriptors};
 use std::io::{BufReader, Read};
 use tar::Archive;
 use wax::Pattern;
-use shared::oci::{find_manifest_descriptors, AnyResolver, BlobResolver};
-use crate::modules::source::{AnySource, SourceError};
 
 mod error;
 mod functions;
@@ -42,7 +42,9 @@ pub fn run() -> Result<(), AppError> {
     let mut manifest_index = 0;
     let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
-    for descriptor in find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))? {
+    for descriptor in
+        find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))?
+    {
         if let Some(annotations) = descriptor.annotations()
             && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
             && reference_type == "attestation-manifest"
@@ -83,7 +85,7 @@ pub fn run() -> Result<(), AppError> {
 
         let manifest_bytes = resolver
             .blob(descriptor.digest())
-            .map_err(|e| AppError::String("Yes".to_string()))? // TODO
+            .map_err(|_e| AppError::String("Yes".to_string()))? // TODO
             .ok_or(SourceError::MissingDigest(descriptor.digest().clone()))?;
 
         let manifest = serde_json::from_slice::<ImageManifest>(&manifest_bytes)
@@ -100,7 +102,10 @@ pub fn run() -> Result<(), AppError> {
 
             println!("  Searching layer... {}", layer.digest().bright_black());
 
-            let Some(bytes) = resolver.blob(layer.digest()).map_err(|e| AppError::String("Yes".to_string()))? else {
+            let Some(bytes) = resolver
+                .blob(layer.digest())
+                .map_err(|_e| AppError::String("Yes".to_string()))?
+            else {
                 eprintln!("Blob for {} not found", layer.digest());
                 continue;
             };

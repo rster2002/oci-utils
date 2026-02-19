@@ -1,6 +1,6 @@
+use crate::image::ImageError;
 use reqwest::header::InvalidHeaderValue;
 use thiserror::Error;
-use crate::image::ImageError;
 
 #[derive(Debug, Error)]
 #[error(transparent)]

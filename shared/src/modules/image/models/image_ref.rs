@@ -1,4 +1,3 @@
-use wax::Glob;
 use crate::image::ImageError;
 
 #[derive(Debug, Clone)]

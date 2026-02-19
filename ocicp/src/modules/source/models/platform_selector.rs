@@ -1,6 +1,6 @@
 use oci_spec::image::Platform;
-use std::str::FromStr;
 use shared::registry::RegistryError;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[deprecated]

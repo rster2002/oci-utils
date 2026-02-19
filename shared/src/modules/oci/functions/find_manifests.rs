@@ -1,12 +1,13 @@
-use oci_spec::image::Descriptor;
-use crate::modules::oci::{BlobResolver, OciError};
 use crate::modules::oci::functions::manifests_for_index::manifest_descriptors_for_index;
+use crate::modules::oci::{BlobResolver, OciError};
+use oci_spec::image::Descriptor;
 
 pub fn find_manifest_descriptors<T>(driver: &T) -> Result<Vec<Descriptor>, OciError<T::Error>>
 where
     T: BlobResolver,
 {
-    let index_bytes = driver.index()
+    let index_bytes = driver
+        .index()
         .map_err(OciError::Inner)?
         .ok_or(OciError::MissingTopLevelIndex)?;
 

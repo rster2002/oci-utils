@@ -1,15 +1,15 @@
+use crate::image::ImageRef;
+use crate::modules::oci::BlobResolver;
+use crate::modules::registry::RegistryError;
+use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
+use crate::modules::registry::functions::real_scheme::real_scheme;
+use crate::modules::registry::models::registry_credentials::RegistryCredentials;
 use base64::Engine;
 use base64::prelude::{BASE64_URL_SAFE, BASE64_URL_SAFE_NO_PAD};
 use oci_spec::image::Digest;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderMap};
 use url::{Host, Url};
-use crate::image::ImageRef;
-use crate::modules::oci::BlobResolver;
-use crate::modules::registry::dto::identity_token_payload::IdentityTokenPayload;
-use crate::modules::registry::functions::real_scheme::real_scheme;
-use crate::modules::registry::models::registry_credentials::RegistryCredentials;
-use crate::modules::registry::RegistryError;
 
 #[derive(Debug, Clone)]
 pub struct RegistryResolver {
@@ -23,7 +23,7 @@ impl RegistryResolver {
     // pub fn target(&self) -> &Target {
     //     &self.target
     // }
-    
+
     pub fn image_ref(&self) -> &ImageRef {
         &self.image_ref
     }
@@ -114,7 +114,10 @@ impl BlobResolver for RegistryResolver {
         let client = self.create_client()?;
 
         let mut blob_url = self.create_base_url()?;
-        blob_url.set_path(&format!("v2/{}/blobs/{}", self.image_ref.repository, digest));
+        blob_url.set_path(&format!(
+            "v2/{}/blobs/{}",
+            self.image_ref.repository, digest
+        ));
 
         let bytes = client.get(blob_url).send()?.bytes()?.to_vec();
 

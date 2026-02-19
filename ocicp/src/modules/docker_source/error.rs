@@ -1,5 +1,5 @@
-use thiserror::Error;
 use shared::image::ImageError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]

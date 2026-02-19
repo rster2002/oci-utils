@@ -1,5 +1,5 @@
-use wax::Glob;
 use shared::image::ImageRef;
+use wax::Glob;
 
 #[derive(Debug, Clone)]
 pub struct Target {

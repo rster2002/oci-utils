@@ -1,12 +1,10 @@
-use std::str::FromStr;
-use url::Url;
-use wax::Glob;
-use shared::image::ImageRef;
-use shared::registry::RegistryResolver;
 use crate::modules::docker_source::DockerSource;
 use crate::modules::registry_source::RegistrySource;
 use crate::modules::source::SourceError;
-use crate::modules::target::Target;
+use shared::image::ImageRef;
+use std::str::FromStr;
+use url::Url;
+use wax::Glob;
 
 #[derive(Debug, Clone)]
 pub enum AnySource {

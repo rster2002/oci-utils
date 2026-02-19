@@ -1,7 +1,7 @@
 pub mod app;
 pub mod cli;
-pub mod output;
-pub mod source;
 pub mod docker_source;
-pub mod target;
+pub mod output;
 pub mod registry_source;
+pub mod source;
+pub mod target;

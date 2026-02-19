@@ -1,7 +1,7 @@
-use clap::Parser;
-use std::path::PathBuf;
-use shared::platform::PlatformSelector;
 use crate::modules::source::AnySource;
+use clap::Parser;
+use shared::platform::PlatformSelector;
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct RootArguments {

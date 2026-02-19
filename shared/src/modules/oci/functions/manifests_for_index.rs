@@ -1,5 +1,5 @@
-use oci_spec::image::{Descriptor, ImageIndex, MediaType};
 use crate::modules::oci::{BlobResolver, OciError};
+use oci_spec::image::{Descriptor, ImageIndex, MediaType};
 
 pub fn manifest_descriptors_for_index<T>(
     driver: &T,

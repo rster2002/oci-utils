@@ -1,6 +1,6 @@
-use thiserror::Error;
 use crate::docker::DockerError;
 use crate::registry::RegistryError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
