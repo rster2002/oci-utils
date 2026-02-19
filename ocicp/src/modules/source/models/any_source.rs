@@ -1,9 +1,10 @@
 use std::str::FromStr;
 use url::Url;
+use wax::Glob;
 use shared::image::ImageRef;
 use shared::registry::RegistryResolver;
-use crate::modules::docker::DockerSource;
-use crate::modules::registry::RegistrySource;
+use crate::modules::docker_source::DockerSource;
+use crate::modules::registry_source::RegistrySource;
 use crate::modules::source::SourceError;
 use crate::modules::target::Target;
 
@@ -18,6 +19,13 @@ impl AnySource {
         match self {
             AnySource::Docker(docker_source) => &docker_source.image_ref,
             AnySource::Registry(registry_source) => registry_source.registry_resolver.image_ref(),
+        }
+    }
+
+    pub fn pattern(&self) -> &Glob<'static> {
+        match self {
+            AnySource::Docker(docker_source) => &docker_source.pattern,
+            AnySource::Registry(registry_source) => &registry_source.pattern,
         }
     }
 }

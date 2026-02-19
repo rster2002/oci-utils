@@ -9,7 +9,8 @@ use sha2::{Digest, Sha256};
 use std::io::{BufReader, Read};
 use tar::Archive;
 use wax::Pattern;
-use shared::oci::AnyResolver;
+use shared::oci::{find_manifest_descriptors, AnyResolver, BlobResolver};
+use crate::modules::source::{AnySource, SourceError};
 
 mod error;
 mod functions;
@@ -17,11 +18,12 @@ mod functions;
 pub fn run() -> Result<(), AppError> {
     let arguments = RootArguments::parse();
 
-    let target = arguments.from.target().clone();
+    let target = arguments.from.image_ref().clone();
     let reference = target.reference();
+    let pattern = arguments.from.pattern();
 
     let resolver: AnyResolver = match &arguments.from {
-        Source::Docker(docker) => {
+        AnySource::Docker(docker) => {
             println!("Searching for local image '{}'", reference.green());
             println!("Fetching image...");
 
@@ -31,16 +33,16 @@ pub fn run() -> Result<(), AppError> {
 
             image.into()
         }
-        Source::Registry(registry) => {
+        AnySource::Registry(registry) => {
             println!("Searching for remote image '{}'", reference.green());
-            registry.clone().into()
+            registry.registry_resolver.clone().into()
         }
     };
 
     let mut manifest_index = 0;
     let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
-    for descriptor in find_manifest_descriptors(&resolver)? {
+    for descriptor in find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))? {
         if let Some(annotations) = descriptor.annotations()
             && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
             && reference_type == "attestation-manifest"
@@ -80,7 +82,8 @@ pub fn run() -> Result<(), AppError> {
         let mut output = output_for_args(&arguments, &descriptor);
 
         let manifest_bytes = resolver
-            .blob(descriptor.digest())?
+            .blob(descriptor.digest())
+            .map_err(|e| AppError::String("Yes".to_string()))? // TODO
             .ok_or(SourceError::MissingDigest(descriptor.digest().clone()))?;
 
         let manifest = serde_json::from_slice::<ImageManifest>(&manifest_bytes)
@@ -97,7 +100,7 @@ pub fn run() -> Result<(), AppError> {
 
             println!("  Searching layer... {}", layer.digest().bright_black());
 
-            let Some(bytes) = resolver.blob(layer.digest())? else {
+            let Some(bytes) = resolver.blob(layer.digest()).map_err(|e| AppError::String("Yes".to_string()))? else {
                 eprintln!("Blob for {} not found", layer.digest());
                 continue;
             };
@@ -128,7 +131,7 @@ pub fn run() -> Result<(), AppError> {
                     continue;
                 }
 
-                if !target.glob.is_match(path.as_ref()) {
+                if !pattern.is_match(path.as_ref()) {
                     continue;
                 }
 

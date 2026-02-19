@@ -5,7 +5,7 @@ use url::Url;
 use wax::Glob;
 use shared::docker::{DockerImage};
 use shared::image::ImageRef;
-use crate::modules::docker::error::DockerError;
+use crate::modules::docker_source::error::DockerSourceError;
 use crate::modules::target::Target;
 
 #[derive(Debug, Clone)]
@@ -21,7 +21,7 @@ impl DockerSource {
     //     &self.0
     // }
 
-    pub fn fetch_image(&self) -> Result<DockerImage, DockerError> {
+    pub fn fetch_image(&self) -> Result<DockerImage, DockerSourceError> {
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")
             .build()?;
@@ -36,17 +36,17 @@ impl DockerSource {
 }
 
 impl TryFrom<&Url> for DockerSource {
-    type Error = DockerError;
+    type Error = DockerSourceError;
 
     fn try_from(url: &Url) -> Result<Self, Self::Error> {
         if url.scheme() != "docker" {
-            return Err(DockerError::NoDockerScheme);
+            return Err(DockerSourceError::NoDockerScheme);
         }
 
         let mut segments = url.path().split(':');
         let image_ref = ImageRef::try_from(&mut segments)?;
         let pattern_str = segments.next()
-            .ok_or(DockerError::MissingPattern)?;
+            .ok_or(DockerSourceError::MissingPattern)?;
 
         let pattern = Glob::new(pattern_str)?;
 

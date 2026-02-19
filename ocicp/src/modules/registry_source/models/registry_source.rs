@@ -21,6 +21,15 @@ impl TryFrom<&Url> for RegistrySource {
         segments.next()
             .ok_or(RegistrySourceError::MissingRepository)?;
 
-        todo!()
+        let glob = Glob::new(match (segments.next(), segments.next()) {
+            (Some(value), None) => value,
+            (Some(_), Some(value)) => value,
+            _ => return Err(RegistrySourceError::MissingPattern),
+        }.trim_start_matches('/'))?;
+
+        Ok(RegistrySource {
+            registry_resolver: resolver,
+            pattern: glob.into_owned(),
+        })
     }
 }

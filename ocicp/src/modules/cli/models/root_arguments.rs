@@ -1,11 +1,12 @@
 use clap::Parser;
 use std::path::PathBuf;
 use shared::platform::PlatformSelector;
+use crate::modules::source::AnySource;
 
 #[derive(Debug, Parser)]
 pub struct RootArguments {
     /// The target to pull the contents from.
-    pub from: Source,
+    pub from: AnySource,
 
     /// Where to place the extracted contents.
     pub to: PathBuf,

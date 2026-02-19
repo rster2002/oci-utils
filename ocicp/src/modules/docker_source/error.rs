@@ -3,7 +3,7 @@ use shared::image::ImageError;
 
 #[derive(Debug, Error)]
 #[error(transparent)]
-pub enum DockerError {
+pub enum DockerSourceError {
     ImageError(#[from] ImageError),
     Reqwest(#[from] reqwest::Error),
     PatternError(#[from] wax::BuildError),
