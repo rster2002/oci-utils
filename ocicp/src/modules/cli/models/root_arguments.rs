@@ -4,6 +4,7 @@ use shared::platform::PlatformSelector;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
+#[command(version)]
 pub struct RootArguments {
     /// The target to pull the contents from.
     pub from: AnySource,
