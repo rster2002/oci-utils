@@ -16,10 +16,6 @@ pub struct DockerSource {
 type ImageArchive = Archive<BufReader<Cursor<Bytes>>>;
 
 impl DockerSource {
-    // pub fn target(&self) -> &Target {
-    //     &self.0
-    // }
-
     pub fn fetch_image(&self) -> Result<DockerImage, DockerSourceError> {
         let client = reqwest::blocking::Client::builder()
             .unix_socket("/var/run/docker.sock")
@@ -47,7 +43,7 @@ impl TryFrom<&Url> for DockerSource {
 
         let mut segments = url.path().split(':');
         let image_ref = ImageRef::try_from(&mut segments)?;
-        let pattern_str = segments.next().ok_or(DockerSourceError::MissingPattern)?;
+        let pattern_str = segments.next().ok_or(DockerSourceError::MissingPattern)?.trim_start_matches('/');
 
         let pattern = Glob::new(pattern_str)?;
 
