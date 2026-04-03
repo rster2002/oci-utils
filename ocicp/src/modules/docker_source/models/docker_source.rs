@@ -43,7 +43,10 @@ impl TryFrom<&Url> for DockerSource {
 
         let mut segments = url.path().split(':');
         let image_ref = ImageRef::try_from(&mut segments)?;
-        let pattern_str = segments.next().ok_or(DockerSourceError::MissingPattern)?.trim_start_matches('/');
+        let pattern_str = segments
+            .next()
+            .ok_or(DockerSourceError::MissingPattern)?
+            .trim_start_matches('/');
 
         let pattern = Glob::new(pattern_str)?;
 

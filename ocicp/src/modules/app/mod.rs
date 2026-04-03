@@ -42,7 +42,8 @@ pub fn run() -> Result<(), AppError> {
     let do_multi_manifest = arguments.multi_manifest || !arguments.platform.is_empty();
 
     for descriptor in
-        find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))? // TODO
+        find_manifest_descriptors(&resolver).map_err(|_| AppError::String("Yes".to_string()))?
+    // TODO
     {
         if let Some(annotations) = descriptor.annotations()
             && let Some(reference_type) = annotations.get("vnd.docker.reference.type")
